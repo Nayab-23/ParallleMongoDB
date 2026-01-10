@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from openai import OpenAI
 from pydantic import BaseModel, Field
 from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 from pymongo.collection import Collection
 from dotenv import load_dotenv
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -80,6 +81,24 @@ _fireworks_client = OpenAI(
 
 _mongo_client: Optional[MongoClient] = None
 _mongo_lock = threading.Lock()
+
+
+def _mongo_config_snapshot() -> Dict[str, Any]:
+    uri = CONFIG.mongodb_uri or ""
+    using_srv = uri.startswith("mongodb+srv://")
+    host = ""
+    db_name = CONFIG.mongodb_db or ""
+    if uri:
+        parts = uri.split("://", 1)
+        rest = parts[1] if len(parts) > 1 else parts[0]
+        host = rest.split("@")[-1].split("/")[0]
+        if not db_name and "/" in rest:
+            db_name = rest.split("/", 1)[1].split("?", 1)[0]
+    return {
+        "mongodb_uri_host": host or "(missing)",
+        "mongodb_db": db_name or "(not set)",
+        "mongodb_using_srv": using_srv,
+    }
 
 
 def _get_mongo_client() -> MongoClient:
@@ -440,6 +459,24 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             response.headers["X-Request-Id"] = request_id
             return response
 
+        except PyMongoError as exc:
+            duration_ms = int((time.time() - start_time) * 1000)
+            log_error(
+                "MONGO_ERROR",
+                exc,
+                request_id=request_id,
+                method=method,
+                path=path,
+                duration_ms=duration_ms,
+                client_ip=client_ip,
+            )
+            return create_error_response(
+                status_code=503,
+                error_code="MONGODB_UNAVAILABLE",
+                message="MongoDB is unavailable. Check MONGODB_URI and Atlas Network Access.",
+                request_id=request_id,
+                details=_mongo_config_snapshot(),
+            )
         except Exception as exc:
             # Log uncaught exception with full stacktrace
             duration_ms = int((time.time() - start_time) * 1000)
@@ -471,6 +508,25 @@ app.add_middleware(RequestLoggerMiddleware)
 @app.get("/api/health")
 def health():
     return {"ok": True}
+
+
+@app.get("/api/ready")
+def ready():
+    try:
+        _get_mongo_client().admin.command("ping")
+    except Exception:
+        return create_error_response(
+            status_code=503,
+            error_code="MONGODB_UNAVAILABLE",
+            message="MongoDB is unavailable. Check MONGODB_URI and Atlas Network Access.",
+            details=_mongo_config_snapshot(),
+        )
+    return {"ok": True, **_mongo_config_snapshot()}
+
+
+@app.get("/api/debug/mongo")
+def debug_mongo():
+    return _mongo_config_snapshot()
 
 
 @app.get("/api/llm_health")
