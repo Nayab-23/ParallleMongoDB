@@ -40,6 +40,7 @@ from logutil import log_event, log_error
 DEMO_WORKSPACE_ID = "1"
 DEMO_USER_ID = "demo-user-1"
 DEMO_USER_NAME = "Demo User"
+DEMO_WORKSPACE_NAME = "Demo Workspace"
 
 # ============================================
 # PYDANTIC MODELS
@@ -144,6 +145,34 @@ class UserOut(BaseModel):
     workspace_id: str = DEMO_WORKSPACE_ID
 
 
+class WorkspaceOut(BaseModel):
+    id: str
+    name: Optional[str] = None
+
+
+class BootstrapResponse(BaseModel):
+    user: UserOut
+    workspaces: List[WorkspaceOut]
+
+
+class ContextTask(BaseModel):
+    id: str
+    title: Optional[str] = None
+    status: Optional[str] = None
+
+
+class ContextConversation(BaseModel):
+    id: str
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    lastMessages: Optional[List[Dict[str, str]]] = None
+
+
+class ContextResponse(BaseModel):
+    tasks: List[ContextTask]
+    conversations: List[ContextConversation]
+
+
 # ============================================
 # ROUTER
 # ============================================
@@ -185,51 +214,29 @@ def _emit_event(entity_type: str, entity_id: str, payload: Any):
     events_col.insert_one(event_doc)
 
 
-# ============================================
-# ENDPOINTS
-# ============================================
-
-# 1. POST /api/chats - Create chat
-@router.post("/api/chats", response_model=ChatOut)
-async def create_chat(req: CreateChatRequest):
-    """Create a new chat session"""
+def _create_chat_doc(workspace_id: str, name: str) -> Dict[str, Any]:
     chats_col = _get_collection("chats")
-
     now = _now_iso()
     chat_id = _generate_id()
-
     doc = {
         "chat_id": chat_id,
-        "name": req.name,
-        "workspace_id": DEMO_WORKSPACE_ID,
+        "name": name,
+        "workspace_id": workspace_id,
         "created_at": now,
         "updated_at": now,
         "last_message_at": None,
     }
-
-    result = chats_col.insert_one(doc)
-
-    return ChatOut(
-        id=chat_id,
-        chat_id=chat_id,
-        name=req.name,
-        created_at=now,
-        updated_at=now,
-    )
+    chats_col.insert_one(doc)
+    return doc
 
 
-# 2. GET /api/chats - List chats
-@router.get("/api/chats", response_model=Dict[str, Any])
-async def list_chats(
-    limit: int = Query(50, ge=1, le=100),
-    cursor: Optional[str] = None,
-):
-    """List all chats for demo workspace"""
+def _list_chats_for_workspace(
+    workspace_id: str,
+    limit: int,
+    cursor: Optional[str],
+) -> tuple[List[Dict[str, Any]], Optional[str]]:
     chats_col = _get_collection("chats")
-
-    query = {"workspace_id": DEMO_WORKSPACE_ID}
-
-    # Simple cursor pagination (using updated_at)
+    query = {"workspace_id": workspace_id}
     if cursor:
         query["updated_at"] = {"$lt": cursor}
 
@@ -255,6 +262,54 @@ async def list_chats(
     ]
 
     next_cursor = docs[-1]["updated_at"] if has_more and docs else None
+    return items, next_cursor
+
+
+# ============================================
+# ENDPOINTS
+# ============================================
+
+# 0. GET /api/v1/bootstrap - Demo bootstrap info
+@router.get("/api/v1/bootstrap", response_model=BootstrapResponse)
+async def bootstrap():
+    return BootstrapResponse(
+        user=UserOut(
+            id=DEMO_USER_ID,
+            name=DEMO_USER_NAME,
+            email="demo@parallel.ai",
+            workspace_id=DEMO_WORKSPACE_ID,
+        ),
+        workspaces=[
+            WorkspaceOut(
+                id=DEMO_WORKSPACE_ID,
+                name=DEMO_WORKSPACE_NAME,
+            )
+        ],
+    )
+
+# 1. POST /api/chats - Create chat
+@router.post("/api/chats", response_model=ChatOut)
+async def create_chat(req: CreateChatRequest):
+    """Create a new chat session"""
+    doc = _create_chat_doc(DEMO_WORKSPACE_ID, req.name)
+
+    return ChatOut(
+        id=doc["chat_id"],
+        chat_id=doc["chat_id"],
+        name=doc["name"],
+        created_at=doc["created_at"],
+        updated_at=doc["updated_at"],
+    )
+
+
+# 2. GET /api/chats - List chats
+@router.get("/api/chats", response_model=Dict[str, Any])
+async def list_chats(
+    limit: int = Query(50, ge=1, le=100),
+    cursor: Optional[str] = None,
+):
+    """List all chats for demo workspace"""
+    items, next_cursor = _list_chats_for_workspace(DEMO_WORKSPACE_ID, limit, cursor)
 
     return {
         "items": items,
@@ -294,6 +349,42 @@ async def get_chat_messages(
         )
         for doc in docs
     ]
+
+
+# 3b. GET /api/v1/chats/{chat_id}/messages - Extension chat history
+@router.get("/api/v1/chats/{chat_id}/messages", response_model=List[MessageOut])
+async def get_chat_messages_v1(
+    chat_id: str,
+    limit: int = Query(50, ge=1, le=200),
+):
+    return await get_chat_messages(chat_id=chat_id, limit=limit)
+
+
+# 3c. GET /api/v1/workspaces/{workspace_id}/chats - List chats
+@router.get("/api/v1/workspaces/{workspace_id}/chats", response_model=Dict[str, Any])
+async def list_chats_v1(
+    workspace_id: str,
+    limit: int = Query(50, ge=1, le=100),
+    cursor: Optional[str] = None,
+):
+    items, next_cursor = _list_chats_for_workspace(workspace_id, limit, cursor)
+    return {"items": items, "next_cursor": next_cursor}
+
+
+# 3d. POST /api/v1/workspaces/{workspace_id}/chats - Create chat
+@router.post("/api/v1/workspaces/{workspace_id}/chats", response_model=ChatOut)
+async def create_chat_v1(
+    workspace_id: str,
+    req: CreateChatRequest,
+):
+    doc = _create_chat_doc(workspace_id, req.name)
+    return ChatOut(
+        id=doc["chat_id"],
+        chat_id=doc["chat_id"],
+        name=doc["name"],
+        created_at=doc["created_at"],
+        updated_at=doc["updated_at"],
+    )
 
 
 # 4. POST /api/chats/{chat_id}/dispatch - Send task to extension
@@ -376,6 +467,49 @@ async def get_task_status(task_id: str):
         created_at=doc["created_at"],
         updated_at=doc["updated_at"],
     )
+
+
+# 5b. GET /api/v1/workspaces/{workspace_id}/vscode/context - Context bundle
+@router.get("/api/v1/workspaces/{workspace_id}/vscode/context", response_model=ContextResponse)
+async def vscode_context(
+    workspace_id: str,
+    tasks_limit: int = Query(20, ge=0, le=500),
+    conversations_limit: int = Query(5, ge=0, le=200),
+    include_messages: Optional[bool] = False,
+):
+    tasks_col = _get_collection("tasks")
+    chats_col = _get_collection("chats")
+
+    task_docs = list(
+        tasks_col.find({"workspace_id": workspace_id})
+        .sort("updated_at", DESCENDING)
+        .limit(tasks_limit)
+    )
+    tasks = [
+        ContextTask(
+            id=doc["task_id"],
+            title=(doc.get("payload") or {}).get("content") or doc.get("task_type"),
+            status=doc.get("status"),
+        )
+        for doc in task_docs
+    ]
+
+    chat_docs = list(
+        chats_col.find({"workspace_id": workspace_id})
+        .sort("updated_at", DESCENDING)
+        .limit(conversations_limit)
+    )
+    conversations = [
+        ContextConversation(
+            id=doc["chat_id"],
+            title=doc.get("name"),
+            summary=None,
+            lastMessages=None,
+        )
+        for doc in chat_docs
+    ]
+
+    return ContextResponse(tasks=tasks, conversations=conversations)
 
 
 # 6. GET /api/v1/workspaces/{workspace_id}/sync - Sync poll
@@ -656,4 +790,3 @@ async def get_current_user():
         email="demo@parallel.ai",
         workspace_id=DEMO_WORKSPACE_ID,
     )
-
