@@ -1,0 +1,511 @@
+import { useMemo, useState, useEffect, useCallback } from "react";
+import "./ChatPanel.css";
+import ChatBubble from "./ChatBubble";
+import { API_BASE_URL } from "../config";
+import { getUserAgent } from "../lib/tasksApi";
+
+export default function ChatPanel({
+  user,
+  roomId,
+  chatId,
+  initialMessages = [],
+  onMessagesUpdate = null,
+}) {
+  const greeting = useMemo(
+    () => ({
+      sender: "ai",
+      text: `Hey ${user?.name || "there"} — how can I help today?`,
+    }),
+    [user?.name]
+  );
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [typing, setTyping] = useState(false);
+  const [status, setStatus] = useState("");
+  const [roomError, setRoomError] = useState("");
+  const [agentId, setAgentId] = useState(null);
+  const [teamUpdatesCount, setTeamUpdatesCount] = useState(0);
+  const [teamSummary, setTeamSummary] = useState(null);
+  const [showTeamSummary, setShowTeamSummary] = useState(false);
+
+  const setMessagesAndNotify = useCallback(
+    (updater, notify = true) => {
+      setMessages((prev) => {
+        const nextValue = typeof updater === "function" ? updater(prev) : updater;
+        const next = nextValue ?? [];
+        if (notify && typeof onMessagesUpdate === "function") {
+          onMessagesUpdate(next);
+        }
+        return next;
+      });
+    },
+    [onMessagesUpdate]
+  );
+
+  // Add this useEffect to load messages when chat opens or changes
+  useEffect(() => {
+    const loadMessages = async () => {
+      if (!chatId) {
+        console.log('[ChatPanel] No chatId, skipping message load');
+        return;
+      }
+
+      console.log(`[ChatPanel] Loading messages for chat ${chatId}`);
+      
+      try {
+        const res = await fetch(`/api/chats/${chatId}/messages`, {
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+          }
+        });
+
+        if (!res.ok) {
+          console.error(`[ChatPanel] Failed to load messages: ${res.status}`);
+          return;
+        }
+
+        const data = await res.json();
+        console.log(`[ChatPanel] Loaded ${data.messages?.length || 0} messages`);
+        
+        // Set messages from response
+        setMessages(data.messages || []);
+        
+      } catch (err) {
+        console.error('[ChatPanel] Error loading messages:', err);
+      }
+    };
+
+    loadMessages();
+  }, [chatId]); // Re-run when chatId changes
+
+  // Fetch user's agent ID on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    let cancelled = false;
+    const loadAgent = async () => {
+      try {
+        console.log("[ChatPanel] Fetching agent for user:", user.id);
+        const data = await getUserAgent(user.id);
+        if (cancelled) return;
+        
+        const nextAgentId = data?.agent_id || data?.id;
+        console.log("[ChatPanel] Resolved agent_id:", nextAgentId);
+        setAgentId(nextAgentId);
+      } catch (err) {
+        if (!cancelled) {
+          console.error("[ChatPanel] Failed to load agent", err);
+        }
+      }
+    };
+
+    loadAgent();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  // Poll unread counts for team updates
+  useEffect(() => {
+    let cancelled = false;
+    const fetchUnread = async () => {
+      try {
+        const res = await fetch("/api/notifications/unread-count", {
+          credentials: "include",
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        const count = data?.team_updates || 0;
+        setTeamUpdatesCount(count);
+      } catch (err) {
+        // silent fail
+      }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleViewTeamUpdates = async () => {
+    try {
+      const res = await fetch("/api/notifications/team-updates/summary", {
+        credentials: "include",
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setTeamSummary(data || {});
+      setShowTeamSummary(true);
+      setTeamUpdatesCount(0);
+    } catch (err) {
+      console.error("Failed to load team updates summary", err);
+    }
+  };
+
+  // Replace history when chat changes
+  useEffect(() => {
+    console.log(
+      "[ChatPanel] Chat/messages changed - chatId:",
+      chatId,
+      "initialMessages:",
+      initialMessages?.length || 0,
+      "agentId:",
+      agentId
+    );
+
+    // ALWAYS clear / reset when chatId changes
+    if (!chatId) {
+      console.log("[ChatPanel] No chat selected, showing greeting");
+      setMessagesAndNotify([greeting], false);
+      return;
+    }
+
+    // CRITICAL: Wait for agentId to load before filtering messages
+    // This prevents showing ALL messages (including teammates') during race condition
+    if (!agentId) {
+      console.log("[ChatPanel] Waiting for agentId to load before showing messages...");
+      setMessagesAndNotify([], false);
+      return;
+    }
+
+    if (Array.isArray(initialMessages) && initialMessages.length > 0) {
+      console.log("[ChatPanel] Received", initialMessages.length, "messages from backend");
+      
+      // Filter to only current user's messages
+      // HANDLES BOTH FORMATS: Backend (sender_id, content) and Frontend (optimistic updates)
+      const filtered = initialMessages.filter((m) => {
+        // USER MESSAGES: Check if sent by current user
+        if (m.role === 'user') {
+          // Backend format: Check user_id field
+          if (m.user_id !== undefined) {
+            const matches = m.user_id === user?.id;
+            // console.log(`[ChatPanel] User msg (backend): user_id=${m.user_id}, match=${matches}`);
+            return matches;
+          }
+          
+          // Backend format: Parse sender_id
+          const senderId = m.sender_id || '';
+          if (senderId) {
+            const senderUserId = senderId.startsWith('user:') ? senderId.replace('user:', '') : senderId;
+            const matches = senderUserId === user?.id;
+            // console.log(`[ChatPanel] User msg (backend): sender_id=${senderId}, match=${matches}`);
+            return matches;
+          }
+          
+          // Frontend format: sender="user" means it's from current user (optimistic update)
+          if (m.sender === 'user') {
+            console.log(`[ChatPanel] User msg (frontend): sender='user', accepting as current user`);
+            return true;
+          }
+          
+          // Fallback: Accept all user messages if we can't determine ownership
+          // This handles edge cases during migration
+          console.log(`[ChatPanel] User msg: No identifying fields, accepting (migration fallback)`);
+          return true;
+        }
+        
+        // ASSISTANT MESSAGES: Check if from current user's agent
+        if (m.role === 'assistant' || m.role === 'system') {
+          // Backend format: Check user_id field (preferred - added by backend fix)
+          if (m.user_id !== undefined) {
+            const matches = m.user_id === user?.id;
+            console.log(`[ChatPanel] Assistant msg (backend): user_id=${m.user_id}, match=${matches}`);
+            return matches;
+          }
+          
+          // Backend format: Check if sender_id matches user's agent
+          const senderId = m.sender_id || '';
+          if (senderId) {
+            const matches = senderId === `agent:${agentId}` || senderId === agentId || senderId === 'system';
+            console.log(`[ChatPanel] Assistant msg (backend): sender_id=${senderId}, agentId=${agentId}, match=${matches}`);
+            return matches;
+          }
+          
+          // Frontend format: sender="ai" means it's from an agent
+          // For optimistic updates, we trust it's the current user's agent
+          if (m.sender === 'ai') {
+            console.log(`[ChatPanel] Assistant msg (frontend): sender='ai', accepting as current user's agent`);
+            return true;
+          }
+        }
+        
+        return false;
+      });
+      
+      console.log("[ChatPanel] Filtered to", filtered.length, "messages for user", user?.id);
+      
+      if (filtered.length === 0 && initialMessages.length > 0) {
+        console.warn("[ChatPanel] ⚠️ No messages passed filter!");
+        console.log("[ChatPanel] Sample message:", initialMessages[0]);
+        console.log("[ChatPanel] Current user.id:", user?.id);
+        console.log("[ChatPanel] Current agentId:", agentId);
+      }
+
+      // Map to UI format (handle both backend and frontend formats)
+      const mapped = filtered.map((m) => ({
+        sender: m.role === "user" ? "user" : "ai",
+        text: m.content || m.text || "",  // Backend uses 'content', frontend uses 'text'
+        role: m.role,
+      }));
+
+      setMessagesAndNotify(mapped, false);
+    } else {
+      // Chat selected but no messages yet
+      console.log("[ChatPanel] No messages or waiting for messages");
+      setMessagesAndNotify([], false);
+    }
+  }, [chatId, initialMessages, greeting, user?.id, agentId, setMessagesAndNotify]);
+
+  // If user isn't loaded yet, show placeholder
+  if (!user) {
+    return (
+      <div className="chat-wrapper">
+        <div className="status-bubble">Loading your workspace…</div>
+      </div>
+    );
+  }
+
+  async function send() {
+    if (!input.trim()) return;
+
+    if (!chatId && !roomId) {
+      setRoomError("No chat is available yet. Try again in a moment.");
+      setStatus("Waiting for chat to be ready…");
+      return;
+    }
+
+    const userMessage = {
+      sender: "user",
+      text: input,
+      role: "user",
+      user_id: user.id,
+      sender_id: `user:${user.id}`,
+    };
+    setMessagesAndNotify((prev) => [...prev, userMessage]);
+    setInput("");
+    setTyping(true);
+
+    try {
+      setStatus("Sending to backend...");
+      const target = chatId
+        ? `${API_BASE_URL}/api/chats/${chatId}/ask`
+        : `${API_BASE_URL}/api/rooms/${roomId}/ask`;
+      console.log("[ChatPanel] 4. Sending to:", target);
+      console.log("[ChatPanel] 4a. Payload:", {
+        user_id: user.id,
+        user_name: user.name,
+        content: userMessage.text,
+        chat_id: chatId || undefined,
+        room_id: roomId || undefined,
+        mode: "team",
+      });
+      const res = await fetch(target, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          user_id: user.id,
+          user_name: user.name,
+          content: userMessage.text,
+          chat_id: chatId || undefined,
+          room_id: roomId || undefined,
+          mode: "team",
+        }),
+      });
+
+      if (!res.ok) {
+        const detail = await res.json().catch(() => ({}));
+        const msg = detail?.detail || `Request failed (${res.status})`;
+        console.error("Ask failed", res.status, msg);
+        throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg));
+      }
+
+      const data = await res.json();
+      console.log("[ChatPanel] 6. Backend response:", data);
+      
+      // Backend returns full conversation including user message + assistant response
+      // We've already added user message optimistically, so just add assistant response
+      const serverMessages = (data.messages || []).filter(m => m.role === 'assistant');
+      
+      if (serverMessages.length > 0) {
+        const lastAssistant = serverMessages[serverMessages.length - 1];
+        const assistantMsg = { 
+          sender: "ai", 
+          text: lastAssistant.content, 
+          role: "assistant" 
+        };
+        
+        // notify=true updates Dashboard so it doesn't need to refetch
+        setMessagesAndNotify((prev) => [...prev, assistantMsg], true);
+      } else {
+        // Fallback if no assistant message
+        setMessagesAndNotify((prev) => [
+          ...prev,
+          { sender: "ai", text: "Okay, noted.", role: "assistant" },
+        ], true);
+      }
+      
+      setStatus("");
+    } catch (err) {
+      setStatus(`Error: ${err?.message || "Request failed"}`);
+      setMessagesAndNotify((prev) => [
+        ...prev,
+        { sender: "ai", text: "Something went wrong. Try again." },
+      ], true);
+    } finally {
+      setTyping(false);
+    }
+  }
+
+  const formatStatus = useMemo(
+    () => ({
+      ask_received: ({ meta }) => `Ask received (${meta?.mode || "team"})`,
+      routing_agent: ({ meta }) => `Routing to ${meta?.agent || "agent"}`,
+      agent_reply: ({ meta }) => `Reply from ${meta?.agent || "agent"}`,
+      team_fanout_start: () => "Querying teammates...",
+      synthesizing: () => "Synthesizing responses...",
+      synthesis_complete: () => "Synthesis complete",
+    }),
+    []
+  );
+
+  useEffect(() => {
+    if ((!roomId && !chatId) || !user?.id) return;
+
+    const params = new URLSearchParams();
+    if (chatId) params.set("chat_id", chatId);
+    if (roomId) params.set("room_id", roomId);
+    params.set("user_id", user.id);
+
+    const url = `${API_BASE_URL}/api/events?${params.toString()}`;
+
+    const source = new EventSource(url);
+
+    source.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "status") {
+          const formatter = formatStatus[data.step];
+          const text = formatter ? formatter(data) : data.step;
+          setStatus(text);
+        } else if (data.type === "error") {
+          setStatus(`Error: ${data.message}`);
+        }
+      } catch (err) {
+        console.error("Error parsing event", err);
+      }
+    };
+
+    source.onerror = () => {
+      setStatus("Disconnected from backend");
+    };
+
+    return () => source.close();
+  }, [formatStatus, roomId, chatId, user.id]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    send();
+  };
+
+  return (
+    <div className="chat-wrapper">
+      <div className="chat-scroll">
+        {messages.map((m, i) => (
+          <ChatBubble
+            key={i}
+            sender={m.sender}
+            text={m.text}
+            metadata={m.metadata}
+          />
+        ))}
+        {roomError && (
+          <div className="status-bubble error">
+            <span>{roomError}</span>
+          </div>
+        )}
+        {status && (
+          <div className="status-bubble">
+            <span>{status}</span>
+            <span className="status-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      <form className="input-container" onSubmit={handleSubmit}>
+        {teamUpdatesCount > 0 && (
+          <div
+            className="team-updates-banner"
+            onClick={handleViewTeamUpdates}
+            style={{
+              width: "100%",
+              marginBottom: 8,
+              padding: "10px 12px",
+              borderRadius: 8,
+              background: "#eef2ff",
+              color: "#1e3a8a",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            📬 {teamUpdatesCount} new team updates - Click to see summary →
+          </div>
+        )}
+        {showTeamSummary && teamSummary && (
+          <div
+            className="team-updates-summary"
+            style={{
+              width: "100%",
+              marginBottom: 8,
+              padding: "12px",
+              border: "1px solid #e5e7eb",
+              borderRadius: 10,
+              background: "#fff",
+              boxShadow: "0 6px 18px rgba(0,0,0,0.06)",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <strong>Team updates summary</strong>
+              <button
+                type="button"
+                onClick={() => setShowTeamSummary(false)}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontSize: 14,
+                }}
+                aria-label="Close summary"
+              >
+                ✕
+              </button>
+            </div>
+            <p style={{ marginTop: 6, marginBottom: 0 }}>
+              {teamSummary.summary || "No summary available."}
+            </p>
+          </div>
+        )}
+        <input
+          className="chat-input"
+          placeholder="Ask Parallel OS..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          disabled={!chatId && !roomId}
+        />
+        <button type="submit" className="chat-send" disabled={!chatId && !roomId}>
+          Send
+        </button>
+      </form>
+    </div>
+  );
+}

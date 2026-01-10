@@ -1,0 +1,29 @@
+.assistant-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f9fafb;
+}
+
+.assistant-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+}
+
+.assistant-unread-dot {
+  width: 10px;
+  height: 10px;
+  background: #f59e0b;
+  border-radius: 50%;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.2);
+}
+
+/* ... rest of existing styles ... */

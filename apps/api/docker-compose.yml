@@ -1,0 +1,16 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: parallel-ai-backend:latest
+    container_name: parallel-backend
+    env_file:
+      - .env
+    environment:
+      - SPOON_IMPL=official
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    command: sh -c "uvicorn hack_main:app --host 0.0.0.0 --port 8000 --reload"

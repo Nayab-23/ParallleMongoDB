@@ -1,0 +1,74 @@
+.system-agent-chat-item {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.system-agent-chat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.system-agent-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.system-agent-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.system-agent-info {
+  flex: 1;
+}
+
+.system-agent-title {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.system-agent-subtitle {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.view-graph-button {
+  width: 100%;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.view-graph-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateX(2px);
+}
+
+.view-graph-button:active {
+  transform: translateX(0);
+}
+
+@media (prefers-color-scheme: dark) {
+  .system-agent-chat-item {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  }
+}

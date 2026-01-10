@@ -1,0 +1,263 @@
+.timeline-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.timeline-section {
+  margin-bottom: 32px;
+  background: var(--card-bg, #fff);
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  background: #fafafa;
+}
+
+.section-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-icon {
+  font-size: 22px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.task-count-badge {
+  background: #e0f2fe;
+  color: #0ea5e9;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.section-content {
+  padding: 16px 20px 20px;
+}
+
+.task-card {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.task-card:hover {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.task-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.task-titles h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.task-titles p {
+  margin: 0 0 6px 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.task-deadline-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.task-deadline-date {
+  font-size: 13px;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.task-deadline-relative {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.task-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.task-actions button {
+  border: none;
+  background: #f3f4f6;
+  color: #111827;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.task-actions button:hover {
+  background: #e5e7eb;
+  transform: translateY(-1px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.empty-timeline-section {
+  padding: 24px;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 8px;
+  margin: 12px 0;
+}
+
+.empty-message {
+  color: #6b7280;
+  margin: 0 0 12px;
+}
+
+.refresh-timeline-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.refresh-timeline-btn:hover {
+  background: #2563eb;
+}
+
+/* Priority borders - 2 tier system */
+.border-urgent {
+  border-left: 4px solid #ef4444; /* Red for urgent */
+}
+
+.border-normal {
+  border-left: 4px solid #e5e7eb; /* Subtle gray for normal */
+}
+
+/* Recurring event styles */
+.task-card.recurring {
+  background: linear-gradient(135deg, #fff 0%, #f0f9ff 100%);
+  border-color: #bfdbfe;
+}
+
+.task-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recurrence-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.recurrence-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: #eff6ff;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.instance-count {
+  font-size: 13px;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.next-occurrence {
+  font-size: 12px;
+  color: #3b82f6;
+  font-weight: 500;
+}
+
+/* Timeline Hero Header */
+.timeline-hero-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.timeline-hero-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+@media (max-width: 768px) {
+  .timeline-container {
+    padding: 12px;
+  }
+
+  .section-header {
+    padding: 14px 16px;
+  }
+
+  .task-card {
+    padding: 12px 14px;
+  }
+
+  .task-actions {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .timeline-hero-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

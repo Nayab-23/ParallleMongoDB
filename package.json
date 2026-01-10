@@ -1,0 +1,12 @@
+{
+  "name": "mongodb-hack",
+  "private": true,
+  "scripts": {
+    "dev:web": "npm --prefix apps/web run dev",
+    "dev:api": "cd apps/api && python -m uvicorn hack_main:app --reload --port 8000",
+    "dev": "concurrently -k -n web,api -c green,blue \"npm run dev:web\" \"npm run dev:api\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

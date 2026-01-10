@@ -1,0 +1,46 @@
+/**
+ * Application configuration
+ * Reads from Vite environment variables
+ */
+
+export interface AppConfig {
+    apiBaseUrl: string;
+    mode: 'cloud' | 'self-hosted' | 'development';
+    features: {
+      googleAuth: boolean;
+    };
+  }
+  
+  const getConfig = (): AppConfig => {
+    // API Base URL - where to call the backend
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+    
+    // Deployment mode
+    const mode = import.meta.env.VITE_DEPLOYMENT_MODE || 'cloud';
+    
+    // Feature flags
+    const googleAuth = import.meta.env.VITE_ENABLE_GOOGLE_AUTH !== 'false';
+    
+    return {
+      apiBaseUrl,
+      mode: mode as 'cloud' | 'self-hosted' | 'development',
+      features: {
+        googleAuth,
+      },
+    };
+  };
+  
+  // Export config object
+  export const config = getConfig();
+  
+  // Export commonly used values for convenience
+  export const API_BASE_URL = config.apiBaseUrl;
+  
+  // Log config in development (helps debugging)
+  if (import.meta.env.DEV) {
+    console.log('🔧 App Config:', {
+      apiBaseUrl: config.apiBaseUrl,
+      mode: config.mode,
+      features: config.features,
+    });
+  }

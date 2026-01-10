@@ -1,0 +1,217 @@
+import { useEffect, useRef, useState, useCallback } from "react";
+import "./RoomDrawer.css";
+import {
+  getRoomDetails,
+  getRoomMembers,
+  listRoomChats,
+  createRoomChat,
+} from "../lib/tasksApi";
+
+export default function RoomDrawer({
+  roomId,
+  isOpen,
+  onClose = () => {},
+  onChatSelect = () => {},
+  selectedChatId = null,
+}) {
+  const [room, setRoom] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [chats, setChats] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [newChatName, setNewChatName] = useState("");
+  const [contextCollapsed, setContextCollapsed] = useState(false);
+  const backdropRef = useRef(null);
+
+  const loadAll = useCallback(async () => {
+    if (!roomId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const [roomData, memberList, chatList] = await Promise.all([
+        getRoomDetails(roomId),
+        getRoomMembers(roomId),
+        listRoomChats(roomId),
+      ]);
+      setRoom(roomData || null);
+      setMembers(memberList || []);
+      setChats(chatList || []);
+    } catch (err) {
+      console.error("Failed to load room drawer data", err);
+      setError("Could not load room details");
+    } finally {
+      setLoading(false);
+    }
+  }, [roomId]);
+
+  useEffect(() => {
+    if (!isOpen || !roomId) return;
+    loadAll();
+  }, [isOpen, roomId, loadAll]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isOpen, onClose]);
+
+  const handleBackdropClick = (e) => {
+    if (e.target === backdropRef.current) {
+      onClose();
+    }
+  };
+
+  const handleCreateChat = async () => {
+    if (!newChatName.trim()) return;
+    try {
+      setCreating(true);
+      const chat = await createRoomChat(roomId, newChatName.trim());
+      setChats((prev) => [chat, ...prev]);
+      setNewChatName("");
+      setCreating(false);
+      onChatSelect(chat.id || chat.chat_id || chat.uuid);
+      onClose();
+    } catch (err) {
+      console.error("Failed to create chat", err);
+      setError("Could not create chat");
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div
+      ref={backdropRef}
+      className={`room-drawer-backdrop ${isOpen ? "open" : ""}`}
+      onMouseDown={handleBackdropClick}
+    >
+      <aside className={`room-drawer ${isOpen ? "open" : ""}`}>
+        <div className="room-drawer-header">
+          <div>
+            <p className="eyebrow">Room Context</p>
+            <h3>{room?.name || "Room"}</h3>
+          </div>
+          <button className="close-btn" onClick={onClose} aria-label="Close room drawer">
+            ×
+          </button>
+        </div>
+
+        {loading && <div className="drawer-hint">Loading room…</div>}
+        {error && <div className="drawer-error">{error}</div>}
+
+        {!loading && room && (
+          <div className="room-context">
+            <div className="room-context-head">
+              <div>
+                <p className="eyebrow">Room Context</p>
+                <h4>{room?.name || "Room"}</h4>
+              </div>
+              <div className="context-actions">
+                <button
+                  className="chip ghost"
+                  onClick={() => setContextCollapsed((v) => !v)}
+                >
+                  {contextCollapsed ? "Show" : "Hide"}
+                </button>
+                <button className="chip ghost" onClick={loadAll}>
+                  Refresh
+                </button>
+              </div>
+            </div>
+
+            {!contextCollapsed && (
+              <div className="context-body">
+                <div className="context-block">
+                  <p className="label">Project summary</p>
+                  <p className="context-text">{room.project_summary || "No summary yet."}</p>
+                </div>
+                <div className="context-block">
+                  <p className="label">Memory</p>
+                  <p className="context-text">{room.memory_summary || "No memory yet."}</p>
+                </div>
+                <div className="context-block">
+                  <p className="label">Members</p>
+                  <div className="member-chips">
+                    {members.map((m) => (
+                      <span key={m.id || m.user_id} className="chip">
+                        {m.name || m.email || m.user_id}
+                        {m.role_in_room || m.role ? (
+                          <span className="chip-role">
+                            {m.role_in_room || m.role}
+                          </span>
+                        ) : null}
+                      </span>
+                    ))}
+                    {members.length === 0 && (
+                      <span className="context-text">No members listed.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="drawer-section">
+          <div className="drawer-section-head">
+            <h4>Chat instances</h4>
+            <button className="chip ghost" onClick={() => setCreating((v) => !v)}>
+              + New
+            </button>
+          </div>
+
+          {creating && (
+            <div className="new-chat">
+              <input
+                type="text"
+                value={newChatName}
+                onChange={(e) => setNewChatName(e.target.value)}
+                placeholder="New chat name"
+              />
+              <button className="btn primary" onClick={handleCreateChat} disabled={creating}>
+                Create
+              </button>
+            </div>
+          )}
+
+          {loading && <div className="drawer-hint">Loading chats…</div>}
+          {!loading && chats.length === 0 && (
+            <div className="drawer-hint">Create your first chat</div>
+          )}
+
+          <div className="chat-instance-list">
+            {chats.map((chat) => {
+              const chatId = chat.id || chat.chat_id || chat.uuid;
+              return (
+                <button
+                  key={chatId}
+                  className={`chat-instance ${selectedChatId === chatId ? "active" : ""}`}
+                  onClick={() => {
+                    onChatSelect(chatId);
+                    onClose();
+                  }}
+                >
+                  <div className="chat-instance-main">
+                    <div className="chat-name">{chat.name || "Chat"}</div>
+                    <div className="chat-meta">
+                      <span>{chat.message_count ?? 0} msgs</span>
+                      {chat.last_message_at && (
+                        <span className="dot">•</span>
+                      )}
+                      {chat.last_message_at && (
+                        <span>{new Date(chat.last_message_at).toLocaleString()}</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </aside>
+    </div>
+  );
+}

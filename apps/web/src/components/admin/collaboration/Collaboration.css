@@ -1,0 +1,415 @@
+.collaboration-debug-dashboard {
+  padding: 24px;
+}
+
+.multi-user-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.selected-users {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-height: 40px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.selected-user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #1e40af;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: #991b1b;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: color 0.2s;
+}
+
+.remove-btn:hover {
+  color: #7f1d1d;
+}
+
+.placeholder-text {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.users-dropdown {
+  width: 100%;
+}
+
+.user-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.loading-text {
+  padding: 8px 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.days-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.days-selector label {
+  font-size: 14px;
+  color: #4b5563;
+}
+
+.days-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.days-select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.interaction-graph-simple {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .interaction-graph-simple {
+    grid-template-columns: 1fr;
+  }
+}
+
+.graph-nodes, .graph-edges {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.graph-nodes h4, .graph-edges h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.graph-node {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+
+.node-label {
+  font-weight: 500;
+  color: #111827;
+}
+
+.node-activity {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.graph-edge {
+  padding: 12px;
+  background: #f9fafb;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+.edge-users {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.edge-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.edge-breakdown {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.chats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.chat-box {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.chat-participants {
+  font-weight: 600;
+  color: #111827;
+}
+
+.chat-count {
+  padding: 4px 8px;
+  background: #eff6ff;
+  color: #1e40af;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chat-time {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.notifications-feed {
+  max-height: 500px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notification-item {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.notification-type {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notification-type.urgent {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.notification-type.normal {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.notification-time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.notification-flow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.notification-user {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.notification-arrow {
+  color: #9ca3af;
+}
+
+.notification-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.notification-message {
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.notification-status {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.notification-status.read {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.notification-status.unread {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.conflicts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+}
+
+.conflict-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.conflict-type-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #fef3c7;
+  color: #92400e;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.conflict-users {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.conflict-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #111827;
+}
+
+.conflict-file, .conflict-similarity {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.conflict-time {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 8px;
+}
+
+.opportunities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.opportunity-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.opportunity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.opportunity-icon {
+  font-size: 20px;
+}
+
+.opportunity-score {
+  padding: 6px 12px;
+  background: #d1fae5;
+  color: #065f46;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.opportunity-users {
+  font-weight: 600;
+  font-size: 16px;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.opportunity-details {
+  background: #f9fafb;
+  border-radius: 4px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.opportunity-details div {
+  font-size: 13px;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.opportunity-details div:last-child {
+  margin-bottom: 0;
+}
+
+.opportunity-suggestion {
+  font-size: 14px;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+.text-gray-500 {
+  color: #6b7280;
+}

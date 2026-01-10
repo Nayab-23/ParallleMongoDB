@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/plogo.png" />
+
+    <title>Parallel OS</title>
+
+    <!-- Ensure light theme loads instantly -->
+    <script>
+      document.documentElement.setAttribute("data-theme", "light");
+      window.__PARALLEL_THEME = "light";
+    </script>
+
+    <!-- CRITICAL CSS - Prevent input collapse -->
+    <style>
+      :root {
+        --panel-strong: #ffffff;
+        --panel-glass: rgba(255, 255, 255, 0.7);
+        --card: #ffffff;
+        --border: #e5e7eb;
+        --radius-sm: 10px;
+        --radius-lg: 12px;
+        --accent: #007aff;
+        --accent-soft: rgba(0, 122, 255, 0.14);
+        --text: #111827;
+        --text-secondary: #6b7280;
+        --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.1);
+        --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.18);
+        --blur: blur(10px);
+      }
+
+      .chat-input {
+        min-height: 48px !important;
+        min-width: 200px !important;
+        padding: 14px 16px !important;
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        font-size: 16px !important;
+        line-height: 1.5 !important;
+      }
+
+      .input-container {
+        min-height: 60px !important;
+        padding: 12px !important;
+        background: #ffffff !important;
+        border: 1px solid #e5e7eb !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        gap: 10px !important;
+      }
+
+      .chat-send {
+        min-height: 48px !important;
+        min-width: 100px !important;
+        padding: 12px 18px !important;
+      }
+    </style>
+
+    <link rel="stylesheet" href="/src/index.css" />
+    <link rel="stylesheet" href="/src/theme.css" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

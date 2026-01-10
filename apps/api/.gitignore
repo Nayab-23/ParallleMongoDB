@@ -1,0 +1,59 @@
+# OS
+.DS_Store
+**/.DS_Store
+
+# Editors/IDE
+.idea/
+.vscode/
+*.swp
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+dist/
+build/
+*.egg-info/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local databases/dumps
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+*.sql
+*.bak
+
+# Logs
+*.log
+logs/
+**/logs/
+
+# Node
+node_modules/
+
+# Cache / temp
+.cache/
+tmp/
+**/tmp/

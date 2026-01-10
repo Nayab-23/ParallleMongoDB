@@ -1,0 +1,130 @@
+.notifications-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.notifications-view .notifications-header {
+  padding: 16px 20px 0;
+}
+
+.notifications-view .notifications-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.notifications-container {
+  padding: 16px 20px 20px;
+  max-width: 600px;
+}
+
+.notification-group {
+  margin-bottom: 24px;
+}
+
+.notification-group-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.notification-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.notification-card:hover {
+  background: rgba(0, 0, 0, 0.02);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.notification-card.unread {
+  background: rgba(59, 130, 246, 0.08);
+  border-color: #3b82f6;
+}
+
+.notification-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.notification-body {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  word-break: break-word;
+}
+
+.notification-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.notification-room {
+  padding: 2px 6px;
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.notification-time {
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.notification-mark-read {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.notification-mark-read:hover {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.notifications-loading,
+.notifications-empty {
+  padding: 24px 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,103 @@
+.logs-dashboard {
+  padding: 16px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-label {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.control-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-width: 140px;
+}
+
+.auto-refresh-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #111827;
+}
+
+.last-fetched {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.logs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.log-entry {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f9fafb;
+}
+
+.log-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.log-level {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.log-level.info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.log-level.warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.log-level.error {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.log-level.debug {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.log-message {
+  font-size: 14px;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.log-context summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.log-context pre {
+  background: #111827;
+  color: #e5e7eb;
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 8px;
+  overflow: auto;
+  font-size: 12px;
+}

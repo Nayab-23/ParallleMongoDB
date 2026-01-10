@@ -1,0 +1,16 @@
+.auth-or {
+  text-align: center;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.auth-button.google {
+  background: white;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.auth-button.google:hover {
+  background: #f9fafb;
+}

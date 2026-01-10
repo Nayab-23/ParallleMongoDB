@@ -1,0 +1,116 @@
+.team-panel {
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  position: relative;
+  overflow: hidden;
+}
+
+.team-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.team-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.team-list::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.08);
+  border-radius: 999px;
+}
+
+.team-member {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  white-space: nowrap;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), transform var(--transition);
+}
+
+.team-member-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-member-name {
+  font-weight: 700;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px rgba(0,0,0,0.03);
+}
+
+/* scoped status colors */
+.status-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15);
+}
+.status-dot.idle {
+  background: #facc15;
+  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.15);
+}
+.status-dot.offline {
+  background: #d1d5db;
+  box-shadow: 0 0 0 4px rgba(209, 213, 219, 0.12);
+}
+
+.activity-drawer {
+  position: absolute;
+  top: 8px;
+  right: -320px;
+  width: 280px;
+  height: calc(100% - 16px);
+  transform: translateX(12px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 200ms ease-out, opacity 150ms ease-out;
+  will-change: transform;
+}
+
+.activity-drawer.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.activity-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-strong);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.activity-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.activity-text {
+  font-size: 13px;
+  color: var(--text-muted);
+}

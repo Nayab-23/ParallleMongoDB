@@ -1,0 +1,285 @@
+// src/pages/LandingPage.jsx
+import { useState, useEffect } from "react";
+import "./LandingPage.css";
+
+import yugImg from "../assets/yug-parallel.png";
+import seanImg from "../assets/sean-parallel.png";
+import severinImg from "../assets/severin-parallel.png";
+import nayabImg from "../assets/nayab-parallel.png";
+
+function scrollToSection(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth" });
+}
+
+export default function LandingPage() {
+  const [cName, setCName] = useState("");
+  const [cEmail, setCEmail] = useState("");
+  const [cCompany, setCCompany] = useState("");
+  const [cMessage, setCMessage] = useState("");
+
+  /* ======================================================
+     🔥 ADVANCED TYPING ANIMATION — LONG PHRASE LIST
+  ====================================================== */
+  const phrases = [
+    "AI boosts clarity",
+    "AI accelerates teamwork",
+    "Parallel simplifies work",
+    "Parallel enhances focus",
+    "Parallel unifies workflow",
+    "AI removes friction",
+    "Teams move faster",
+    "Parallel amplifies output",
+    "AI sharpens execution",
+    "Clarity powers progress",
+    "Parallel aligns teams",
+    "AI automates context",
+    "Work becomes effortless",
+    "Everything stays in sync",
+    "Parallel boosts momentum",
+    "AI strengthens decisions",
+    "Parallel reduces meetings",
+    "Parallel brings awareness",
+    "Alignment drives speed",
+    "Parallel powers productivity"
+  ];
+
+  const [text, setText] = useState("");
+  const [index, setIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = phrases[index % phrases.length];
+    const speed = isDeleting ? 50 : 90;
+
+    const t = setTimeout(() => {
+      setText((prev) =>
+        isDeleting
+          ? current.substring(0, prev.length - 1)
+          : current.substring(0, prev.length + 1)
+      );
+
+      if (!isDeleting && text === current) {
+        setTimeout(() => setIsDeleting(true), 1000);
+      }
+      if (isDeleting && text === "") {
+        setIsDeleting(false);
+        setIndex((prev) => prev + 1);
+      }
+    }, speed);
+
+    return () => clearTimeout(t);
+  }, [text, isDeleting, index]);
+
+  /* ======================================================
+     EMAIL HANDLER
+  ====================================================== */
+  const handleRequestAccessSubmit = (e) => {
+    e.preventDefault();
+
+    const subject = encodeURIComponent("Parallel AI – Early access request");
+    const bodyLines = [
+      `Name: ${cName}`,
+      `Email: ${cEmail}`,
+      `Company / Team: ${cCompany}`,
+      "",
+      "What are you hoping Parallel helps with?",
+      cMessage || "(not provided)",
+    ];
+    const body = encodeURIComponent(bodyLines.join("\n"));
+
+    window.location.href = `mailto:founder@parallelos.ai?subject=${subject}&body=${body}`;
+  };
+
+  return (
+    <>
+      {/* NAVBAR */}
+      <header className="navbar">
+        <div className="logo">
+          <img src="/parallel-logo.png" className="nav-logo" alt="Parallel Logo" />
+        </div>
+
+        <nav className="nav-links">
+          <button type="button" onClick={() => scrollToSection("mission")}>Mission</button>
+          <button type="button" onClick={() => scrollToSection("product")}>Product</button>
+          <button type="button" onClick={() => scrollToSection("team")}>Team</button>
+          <a href="/app/" className="nav-cta">Launch App</a>
+        </nav>
+      </header>
+
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-inner">
+          <h1>
+            The Future of Team Intelligence
+            <br />
+            Built for Real-Time Collaboration
+          </h1>
+
+          {/* ⭐ NEW TYPING ANIMATION */}
+          <p className="hero-typing">
+            {text}
+            <span className="cursor">|</span>
+          </p>
+
+          <p className="hero-subtitle">
+            Parallel AI gives teams a shared awareness layer by streaming each
+            teammate’s AI workflow in real time — enabling unmatched speed and
+            alignment.
+          </p>
+
+          <div className="hero-actions">
+            <button className="btn-primary" onClick={() => scrollToSection("request-access")}>
+              Request Access
+            </button>
+            <button className="btn-secondary" onClick={() => scrollToSection("product")}>
+              See Features
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* MISSION */}
+      <section className="section" id="mission">
+        <h2>Our Mission</h2>
+        <p>
+          To redefine teamwork by giving every person instant visibility into what
+          the entire team is doing. When awareness becomes automatic —
+          productivity skyrockets.
+        </p>
+
+        <div className="mission-3d">
+          <div className="sphere" />
+        </div>
+      </section>
+
+      {/* PRODUCT */}
+      <section className="section" id="product">
+        <h2>What We Built</h2>
+        <div className="product-grid">
+          <div className="product-card">
+            <h3>One Agent Per Teammate</h3>
+            <p>Each person gets a representative agent that tracks their work.</p>
+          </div>
+          <div className="product-card">
+            <h3>Live Awareness Layer</h3>
+            <p>See real-time updates across tools in one unified place.</p>
+          </div>
+          <div className="product-card">
+            <h3>Manager-Ready Briefings</h3>
+            <p>AI-generated briefs so leaders stay aligned effortlessly.</p>
+          </div>
+          <div className="product-card">
+            <h3>Unified Awareness</h3>
+            <p>Your entire team stays in sync — instantly.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* TEAM */}
+      <section className="section" id="team">
+        <h2>Meet the Team</h2>
+
+        <div className="team-grid">
+          <div className="team-card">
+            <img src={yugImg} className="team-img" alt="Yug" />
+            <h3>Yug</h3>
+            <p>Full Stack · Product Vision</p>
+            <a href="https://www.linkedin.com/in/yugmore13/" target="_blank" className="team-link">LinkedIn ↗</a>
+          </div>
+
+          <div className="team-card">
+            <img src={seanImg} className="team-img" alt="Sean" />
+            <h3>Sean</h3>
+            <p>Backend Systems · Architecture</p>
+            <a href="https://www.linkedin.com/in/sean-aminov/" target="_blank" className="team-link">LinkedIn ↗</a>
+          </div>
+
+          <div className="team-card">
+            <img src={severinImg} className="team-img" alt="Severin" />
+            <h3>Severin</h3>
+            <p>Data Flow · Infrastructure</p>
+            <a
+              href="https://www.linkedin.com/in/severin-spagnola-698a39396/"
+              target="_blank"
+              className="team-link"
+            >
+              LinkedIn ↗
+            </a>
+          </div>
+
+          <div className="team-card">
+            <img src={nayabImg} className="team-img" alt="Nayab" />
+            <h3>Nayab</h3>
+            <p>Coordinator · AI Integrations</p>
+            <a
+              href="https://www.linkedin.com/in/nayabhossain/"
+              target="_blank"
+              className="team-link"
+            >
+              LinkedIn ↗
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* REQUEST ACCESS */}
+      <section className="section request-access" id="request-access">
+        <h2>Request Early Access</h2>
+        <p className="request-access-subtitle">
+          Tell us a bit about your team and we’ll reach out.
+        </p>
+
+        <form className="request-form" onSubmit={handleRequestAccessSubmit}>
+          <div className="request-row">
+            <input
+              className="auth-input"
+              type="text"
+              placeholder="Your name"
+              value={cName}
+              onChange={(e) => setCName(e.target.value)}
+              required
+            />
+            <input
+              className="auth-input"
+              type="email"
+              placeholder="Work email"
+              value={cEmail}
+              onChange={(e) => setCEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <input
+            className="auth-input"
+            type="text"
+            placeholder="Company / team (optional)"
+            value={cCompany}
+            onChange={(e) => setCCompany(e.target.value)}
+          />
+
+          <textarea
+            className="auth-input request-message"
+            placeholder="What problems do you want Parallel to solve?"
+            value={cMessage}
+            onChange={(e) => setCMessage(e.target.value)}
+          />
+
+          <button type="submit" className="btn-primary">
+            Email Founder
+          </button>
+        </form>
+
+        <p className="request-note">
+          Prefer direct email?{" "}
+          <a href="mailto:founder@parallelos.ai">founder@parallelos.ai</a>
+        </p>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <p>© 2025 Parallel AI • Built with clarity & purpose.</p>
+      </footer>
+    </>
+  );
+}

@@ -1,0 +1,123 @@
+// src/layouts/AppLayout.jsx
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+import Dashboard from "../pages/Dashboard";
+import Login from "../pages/Login";
+import Signup from "../pages/Signup";
+import ForgotPassword from "../pages/ForgotPassword";
+import InviteGate from "../pages/InviteGate"; // you'll create this file
+
+const apiBase = import.meta.env.VITE_API_BASE || "/api";
+
+export default function AppLayout() {
+  // authState: "checking" | "unauth" | "needsInvite" | "ready"
+  const [authState, setAuthState] = useState("checking");
+  const [user, setUser] = useState(null);
+
+  // which auth screen to show when unauth
+  const [page, setPage] = useState("login"); // "login" | "signup" | "forgot"
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkAuth = async () => {
+      try {
+        const res = await fetch(`${apiBase}/me`, {
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          if (!cancelled) {
+            setAuthState("unauth");
+          }
+          return;
+        }
+
+        const data = await res.json();
+        if (cancelled) return;
+
+        setUser(data);
+
+        if (data.needs_invite) {
+          setAuthState("needsInvite");
+        } else {
+          setAuthState("ready");
+        }
+      } catch (err) {
+        console.warn("Auth check failed", err);
+        if (!cancelled) setAuthState("unauth");
+      }
+    };
+
+    checkAuth();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const go = (to) => {
+    setPage(to);
+  };
+
+  // After login/signup, we want to re-run the /me logic,
+  // so instead of forcing "dashboard" just reload /app.
+  const goDashboard = () => {
+    window.location.reload();
+  };
+
+  if (authState === "checking") {
+    return (
+      <div
+        style={{
+          display: "flex",
+          height: "100vh",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span>Loading workspace…</span>
+      </div>
+    );
+  }
+
+  let content = null;
+
+  if (authState === "unauth") {
+    // not logged in – show auth stack
+    if (page === "signup") {
+      content = <Signup goLogin={() => go("login")} goDashboard={goDashboard} />;
+    } else if (page === "forgot") {
+      content = <ForgotPassword goLogin={() => go("login")} />;
+    } else {
+      content = (
+        <Login
+          goSignup={() => go("signup")}
+          goForgot={() => go("forgot")}
+          goDashboard={goDashboard}
+        />
+      );
+    }
+  } else if (authState === "needsInvite") {
+    // logged in, but needs invite activation
+    content = <InviteGate user={user} />;
+  } else if (authState === "ready") {
+    // fully authenticated and activated
+    content = <Dashboard user={user} />;
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={`${authState}-${page}`}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.28 }}
+        style={{ height: "100%" }}
+      >
+        {content}
+      </motion.div>
+    </AnimatePresence>
+  );
+}

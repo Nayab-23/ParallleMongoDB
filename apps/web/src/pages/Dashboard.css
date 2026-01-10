@@ -1,0 +1,219 @@
+.inbox-item.done {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.dashboard-container {
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  gap: 10px;
+  height: 100vh;
+  padding: 12px;
+  overflow: hidden;
+  transition: grid-template-columns var(--transition);
+}
+
+.dashboard-container.collapsed {
+  grid-template-columns: 80px 1fr 280px;
+}
+
+.dashboard-main {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* ← Allow scrolling in main area */
+  min-height: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.dashboard-main .chat-container {
+  flex: 1;
+  display: flex;
+}
+
+.dashboard-main .chat-container .chat-wrapper {
+  flex: 1;
+}
+
+.dashboard-right {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* ← Allow scrolling in right panel */
+  min-height: 0;
+}
+
+.dashboard-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+}
+
+.sidebar-toggle-shell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle {
+  border: 1px solid var(--border);
+  background: var(--panel-glass);
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.split-resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: rgba(0,0,0,0.04);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  transition: background var(--transition);
+}
+
+.split-resizer:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+.chat-style-switch {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.chat-style-pill {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.chat-style-pill input {
+  display: none;
+}
+
+.chat-style-pill.active {
+  border-color: var(--accent);
+  box-shadow: var(--accent-glow);
+}
+
+.chat-container .chat-wrapper {
+  transition: background var(--transition), border var(--transition), box-shadow var(--transition), backdrop-filter var(--transition);
+}
+
+.chat-container.chat-windowed .chat-wrapper {
+  background: var(--card);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-strong);
+}
+
+.chat-container.chat-glass .chat-wrapper {
+  background: var(--panel-glass);
+  border: 1px solid var(--border);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-strong);
+}
+
+.chat-container.chat-bare .chat-wrapper {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 0;
+}
+
+.chat-container.chat-bare .chat-scroll {
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.chat-container.chat-bare .input-container {
+  margin: 12px 0 0;
+}
+
+.dashboard-right-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: width var(--transition);
+  background: transparent;
+  border: none;
+}
+
+.dashboard-right-wrapper.collapsed {
+  width: 24px;
+}
+
+.right-tab {
+  position: absolute;
+  top: 50%;
+  right: -10px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 72px;
+  border: 1px solid var(--border);
+  border-radius: 12px 0 0 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.right-tab:hover {
+  transform: translateY(-50%) translateX(-2px);
+  box-shadow: var(--shadow-strong);
+}
+
+.right-collapse {
+  position: absolute;
+  top: 8px;
+  right: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+
+.right-collapse:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-strong);
+}
+
+/* Team live log spacing */
+.team-live-log-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-live-log-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.team-live-log-name {
+  font-weight: 700;
+}
+
+.team-live-log-text {
+  color: var(--text-secondary);
+}

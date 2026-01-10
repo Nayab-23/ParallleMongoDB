@@ -1,0 +1,168 @@
+.recommendations-section {
+  margin: 0 0 24px 0;
+  padding: 20px;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.1);
+}
+
+.recommendations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.recommendations-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #92400e;
+}
+
+.rec-count {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #78350f;
+  background: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.recommendations-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.recommendations-list::-webkit-scrollbar-thumb {
+  background: #fbbf24;
+  border-radius: 3px;
+}
+
+.recommendation-card {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border: 1px solid #fcd34d;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.2s;
+}
+
+.recommendation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.2);
+}
+
+.rec-content {
+  flex: 1;
+}
+
+.rec-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #1f2937;
+}
+
+.rec-detail {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 8px;
+}
+
+.rec-reason {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin-bottom: 8px;
+}
+
+.rec-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rec-badge {
+  padding: 3px 10px;
+  background: #fef3c7;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.rec-badge.timeframe {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.rec-badge.section {
+  background: #fce7f3;
+  color: #9f1239;
+}
+
+.rec-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.rec-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.rec-btn.accept {
+  background: #10b981;
+  color: white;
+}
+
+.rec-btn.accept:hover {
+  background: #059669;
+  transform: scale(1.05);
+}
+
+.rec-btn.dismiss {
+  background: #ef4444;
+  color: white;
+}
+
+.rec-btn.dismiss:hover {
+  background: #dc2626;
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .recommendation-card {
+    flex-direction: column;
+  }
+  
+  .rec-actions {
+    flex-direction: row;
+    width: 100%;
+  }
+  
+  .rec-btn {
+    flex: 1;
+  }
+}

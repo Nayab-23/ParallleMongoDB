@@ -1,0 +1,363 @@
+// Simple API adapter for tasks + team info + rooms + memberships
+import { API_BASE_URL } from "../config";
+
+// Always use backend (manager features)
+async function j(path, opts = {}) {
+  const url = `${API_BASE_URL}/api${path}`;
+  console.log(`[API] ${opts.method || "GET"} ${url}`);
+
+  const res = await fetch(url, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    ...opts,
+  });
+  console.log(`[API] Response status: ${res.status} ${res.statusText}`);
+
+  if (!res.ok) {
+    const errorText = await res.text().catch(() => res.statusText);
+    console.error(`[API] Error response: ${errorText}`);
+    throw new Error(`${res.status}: ${errorText}`);
+  }
+
+  if (res.status === 204) {
+    console.log("[API] No content (204)");
+    return null;
+  }
+
+  const data = await res.json();
+  console.log("[API] Response data:", data);
+  return data;
+}
+
+// ---- Team ----
+export async function fetchTeam() {
+  try {
+    const data = await j(`/team`);
+    return data?.members || [];
+  } catch {
+    // Mock so UI runs immediately
+    return [
+      { id: "u1", name: "You", roles: ["Coordinator"], status: "active" },
+      { id: "u2", name: "Researcher", roles: ["Analysis"], status: "idle" },
+      { id: "u3", name: "Engineer", roles: ["Implementation"], status: "active" },
+    ];
+  }
+}
+
+// ---- Tasks ----
+export async function listTasks() {
+  try {
+    const data = await j(`/tasks`);
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createTask({ title, description, assignee_id }) {
+  try {
+    return await j(`/tasks`, {
+      method: "POST",
+      body: JSON.stringify({ title, description, assignee_id }),
+    });
+  } catch {
+    // Fallback: pretend created
+    return {
+      id: String(Date.now()),
+      title,
+      description,
+      assignee_id,
+      status: "new",
+      created_at: new Date().toISOString(),
+    };
+  }
+}
+
+export async function updateTaskStatus(taskId, status) {
+  try {
+    return await j(`/tasks/${taskId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
+    });
+  } catch {
+    return { id: taskId, status };
+  }
+}
+
+export async function updateUserRole(userId, role) {
+  return j(`/users/${userId}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
+}
+
+// ---- Notifications (assignee inbox) ----
+export async function listMyNotifications(userId) {
+  try {
+    const data = await j(`/users/${userId}/notifications`);
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function pushTaskNotification({ assignee_id, task }) {
+  try {
+    await j(`/users/${assignee_id}/notifications`, {
+      method: "POST",
+      body: JSON.stringify({
+        type: "task_assigned",
+        task_id: task.id,
+        title: task.title,
+        message: task.description,
+      }),
+    });
+  } catch {
+    // no-op if backend not ready
+  }
+}
+
+// ---- Rooms ----
+export async function listRooms() {
+  try {
+    const data = await j(`/rooms`);
+    return data || [];
+  } catch (err) {
+    console.error("Failed to list rooms:", err);
+    return [];
+  }
+}
+
+export async function createRoom(roomName) {
+  try {
+    const data = await j(`/rooms`, {
+      method: "POST",
+      body: JSON.stringify({ room_name: roomName }),
+    });
+    return data;
+  } catch (err) {
+    console.error("Failed to create room:", err);
+    throw err;
+  }
+}
+
+export async function deleteRoom(roomId) {
+  try {
+    await j(`/rooms/${roomId}`, {
+      method: "DELETE",
+    });
+    return true;
+  } catch (err) {
+    console.error("Failed to delete room:", err);
+    throw err;
+  }
+}
+
+export async function getRoomDetails(roomId) {
+  try {
+    const data = await j(`/rooms/${roomId}`);
+    return data;
+  } catch (err) {
+    console.error("Failed to get room details:", err);
+    throw err;
+  } // adasa
+}
+
+// ---- Room Membership ----
+export async function getUserRooms(userId) {
+  try {
+    return await j(`/users/${userId}/rooms`);
+  } catch (err) {
+    console.error("Failed to get user rooms:", err);
+    return [];
+  }
+}
+
+export async function updateUserRooms(userId, roomIds) {
+  try {
+    return await j(`/users/${userId}/rooms`, {
+      method: "PUT",
+      body: JSON.stringify({ room_ids: roomIds }),
+    });
+  } catch (err) {
+    console.error("Failed to update user rooms:", err);
+    throw err;
+  }
+}
+
+export async function addRoomMember(roomId, userId, roleInRoom = null) {
+  try {
+    return await j(`/rooms/${roomId}/members`, {
+      method: "POST",
+      body: JSON.stringify({
+        room_id: roomId,
+        user_id: userId,
+        role_in_room: roleInRoom,
+      }),
+    });
+  } catch (err) {
+    console.error("Failed to add room member:", err);
+    throw err;
+  }
+}
+
+export async function removeRoomMember(roomId, userId) {
+  try {
+    await j(`/rooms/${roomId}/members/${userId}`, {
+      method: "DELETE",
+    });
+    return true;
+  } catch (err) {
+    console.error("Failed to remove room member:", err);
+    throw err;
+  }
+}
+
+export async function getRoomMembers(roomId) {
+  try {
+    return await j(`/rooms/${roomId}/members`);
+  } catch (err) {
+    console.error("Failed to get room members:", err);
+    return [];
+  }
+}
+
+// ---- Room chats ----
+export async function listRoomChats(roomId) {
+  try {
+    return await j(`/rooms/${roomId}/chats`);
+  } catch (err) {
+    console.error("Failed to list room chats:", err);
+    return [];
+  }
+}
+
+export async function createRoomChat(roomId, name) {
+  console.group("🔷 [API] createRoomChat");
+  console.log("Room ID:", roomId);
+  console.log("Chat name:", name);
+  console.log("API Base URL:", API_BASE_URL);
+
+  const url = `${API_BASE_URL}/api/rooms/${roomId}/chats`;
+  console.log("Full URL:", url);
+
+  const payload = { name };
+  console.log("Payload:", JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await j(`/rooms/${roomId}/chats`, {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+
+    console.log("✅ API Success");
+    console.log("Response:", response);
+    console.log("Response type:", typeof response);
+    console.log("Response keys:", Object.keys(response || {}));
+    console.groupEnd();
+
+    return response;
+  } catch (err) {
+    console.error("❌ API Error");
+    console.error("Error:", err);
+    console.error("Error message:", err.message);
+    console.groupEnd();
+    throw err;
+  }
+}
+
+export async function getChatMessages(chatId) {
+  console.log("[API] getChatMessages:", chatId);
+  try {
+    const data = await j(`/chats/${chatId}/messages`);
+    console.log("[API] getChatMessages response:", data);
+    return data;
+  } catch (err) {
+    console.error("[API] getChatMessages failed:", err);
+    throw err;
+  }
+}
+
+// ---- Inbox ----
+export async function updateInboxTask(userId, taskId, payload) {
+  try {
+    return await j(`/users/${userId}/inbox/${taskId}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.error("Failed to update inbox task:", err);
+    throw err;
+  }
+}
+
+// ---- Org + admin helpers ----
+export async function joinOrganization(inviteCode) {
+  try {
+    return await j(`/org/join`, {
+      method: "POST",
+      body: JSON.stringify({ invite_code: inviteCode }),
+    });
+  } catch (err) {
+    console.error("Failed to join organization:", err);
+    throw err;
+  }
+}
+
+export async function createOrganization(name) {
+  try {
+    return await j(`/admin/orgs/create`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    });
+  } catch (err) {
+    console.error("Failed to create organization:", err);
+    throw err;
+  }
+}
+
+export async function listOrganizations() {
+  try {
+    return await j(`/admin/orgs`);
+  } catch (err) {
+    console.error("Failed to list organizations:", err);
+    return [];
+  }
+}
+
+// ---- Integrations ----
+export async function getIntegrationsStatus() {
+  try {
+    return await j(`/integrations/status`);
+  } catch (err) {
+    console.error("Failed to load integrations status:", err);
+    throw err;
+  }
+}
+
+export async function disconnectIntegration(provider) {
+  const map = {
+    gmail: "/integrations/google_gmail",
+    calendar: "/integrations/google_calendar",
+  };
+  const path = map[provider];
+  if (!path) throw new Error("Unknown provider");
+
+  try {
+    return await j(path, { method: "DELETE" });
+  } catch (err) {
+    console.error(`Failed to disconnect ${provider}:`, err);
+    throw err;
+  }
+}
+
+// ---- Daily brief ----
+export async function fetchDailyBrief(force = false) {
+  const qs = force ? "?force=true" : "";
+  try {
+    return await j(`/brief/daily${qs}`);
+  } catch (err) {
+    console.error("Failed to fetch daily brief:", err);
+    throw err;
+  }
+}

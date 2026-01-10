@@ -1,0 +1,328 @@
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import "./Manager.css";
+
+import {
+  fetchTeam,
+  listRooms,
+  updateUserRole,
+  getUserRooms,
+  updateUserRooms,
+} from "../lib/tasksApi";
+
+const tabs = [
+  { id: "team", label: "Team" },
+  { id: "rooms", label: "Rooms" },
+];
+
+export default function Manager({ currentUser }) {
+  const [team, setTeam] = useState([]);
+  const [rooms, setRooms] = useState([]);
+  const [memberships, setMemberships] = useState({}); // userId -> [roomIds]
+  const [permissions, setPermissions] = useState({}); // UI-only toggles
+
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState("");
+  const [membershipStatus, setMembershipStatus] = useState("");
+  const [savingUser, setSavingUser] = useState({});
+  const [activeTab, setActiveTab] = useState("team");
+
+  const roleOptions =
+    (import.meta.env.VITE_ROLE_OPTIONS ||
+      "Product,Engineering,Design,Data,Ops,Other")
+      .split(",")
+      .map((r) => r.trim())
+      .filter(Boolean);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setStatus("");
+      try {
+        const [membersRes, roomsRes] = await Promise.all([
+          fetchTeam(),
+          listRooms(),
+        ]);
+
+        const members = membersRes || [];
+        setTeam(members);
+        setRooms(roomsRes || []);
+
+        // seed permissions toggle UI defaults
+        setPermissions((prev) => {
+          const next = { ...prev };
+          for (const m of members) {
+            const frontend = m.permissions?.frontend ?? true;
+            const backend = m.permissions?.backend ?? false;
+            next[m.id] = { frontend, backend };
+          }
+          return next;
+        });
+
+        // fetch memberships per user
+        const pairs = await Promise.all(
+          members.map(async (m) => {
+            try {
+              const ids = await getUserRooms(m.id);
+              return [m.id, ids];
+            } catch (err) {
+              console.error("Failed to load rooms for user", m.id, err);
+              return [m.id, []];
+            }
+          })
+        );
+        setMemberships(Object.fromEntries(pairs));
+      } catch (err) {
+        console.error("Manager load failed", err);
+        setStatus("Failed to load team or rooms.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, []);
+
+  const changeRole = async (userId, role) => {
+    setStatus("");
+    try {
+      const updated = await updateUserRole(userId, role);
+      setTeam((prev) =>
+        prev.map((m) =>
+          m.id === userId ? { ...m, roles: [updated.role] } : m
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update role", err);
+      setStatus("Unable to update role right now.");
+    }
+  };
+
+  const togglePerm = (userId, key) => {
+    // UI only; backend permission endpoint not defined yet
+    setPermissions((prev) => ({
+      ...prev,
+      [userId]: { ...prev[userId], [key]: !prev[userId]?.[key] },
+    }));
+  };
+
+  const toggleRoomMembership = async (userId, roomId, checked) => {
+    setMembershipStatus("");
+    const prevRooms = memberships[userId] || [];
+    const nextRooms = checked
+      ? Array.from(new Set([...prevRooms, roomId]))
+      : prevRooms.filter((id) => id !== roomId);
+
+    if (nextRooms.length === 0) {
+      setMembershipStatus("Each user must belong to at least one room.");
+      return;
+    }
+
+    setMemberships((prev) => ({ ...prev, [userId]: nextRooms }));
+    setSavingUser((prev) => ({ ...prev, [userId]: true }));
+
+    try {
+      await updateUserRooms(userId, nextRooms);
+    } catch (err) {
+      console.error("Room membership update failed", err);
+      setMembershipStatus(
+        err?.message || "Could not update room membership right now."
+      );
+      // revert
+      setMemberships((prev) => ({ ...prev, [userId]: prevRooms }));
+    } finally {
+      setSavingUser((prev) => {
+        const next = { ...prev };
+        delete next[userId];
+        return next;
+      });
+    }
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="manager-shell">
+        <div className="manager-panel">Loading user…</div>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="manager-shell">
+        <div className="manager-panel">Loading manager data…</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="manager-shell">
+      <div className="manager-top">
+        <div>
+          <p className="eyebrow">Org control</p>
+          <h2>Workspace Manager</h2>
+          <p className="subhead">
+            Manage user permissions and room memberships.
+          </p>
+        </div>
+        {status && <div className="status-pill error">{status}</div>}
+      </div>
+
+      <div className="manager-tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            className={tab.id === activeTab ? "manager-tab active" : "manager-tab"}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+        {activeTab === "team" && (
+          <motion.div
+            key="team"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="manager-panel"
+          >
+            <div className="panel-header">
+              <div>
+                <h3>Team</h3>
+                <p className="subhead">
+                  Toggle platform access and update roles.
+                </p>
+              </div>
+            </div>
+            <div className="manager-list">
+              {team.length === 0 && <div>No teammates yet.</div>}
+              {team.map((m) => (
+                <div key={m.id} className="member">
+                  <div className="member-main">
+                    <div className="member-title">{m.name}</div>
+                    <div className="roles">{m.email}</div>
+                    <div className="member-controls">
+                      <select
+                        value={m.roles?.[0] || ""}
+                        onChange={(e) => changeRole(m.id, e.target.value)}
+                      >
+                        <option value="">Select role</option>
+                        {roleOptions.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="perm-row">
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={permissions[m.id]?.frontend ?? true}
+                            onChange={() => togglePerm(m.id, "frontend")}
+                          />
+                          Frontend
+                        </label>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={permissions[m.id]?.backend ?? false}
+                            onChange={() => togglePerm(m.id, "backend")}
+                          />
+                          Backend (manager)
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="roles">{m.status || "active"}</div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === "rooms" && (
+          <motion.div
+            key="rooms"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="manager-panel"
+          >
+            <div className="panel-header">
+              <div>
+                <h3>Rooms</h3>
+                <p className="subhead">
+                  Add or remove people from rooms (matrix view).
+                </p>
+              </div>
+              {membershipStatus && (
+                <div className="status-pill error">{membershipStatus}</div>
+              )}
+            </div>
+
+            <div className="rooms-matrix">
+              <div className="matrix-header">
+                <div className="matrix-user-col">User</div>
+                <div className="matrix-rooms">
+                  {rooms.map((room) => (
+                    <div key={room.id} className="matrix-room">
+                      <div className="room-name">{room.name}</div>
+                      <div className="roles">
+                        {room.member_count
+                          ? `${room.member_count} members`
+                          : "Room"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="matrix-body">
+                {team.map((user) => {
+                  const userRoomIds = memberships[user.id] || [];
+                  const saving = !!savingUser[user.id];
+                  return (
+                    <div key={user.id} className="matrix-row">
+                      <div className="matrix-user">
+                        <div className="member-title">
+                          {user.name || user.email}
+                        </div>
+                        <div className="roles">{user.email}</div>
+                      </div>
+                      <div className="matrix-rooms">
+                        {rooms.map((room) => {
+                          const checked = userRoomIds.includes(room.id);
+                          return (
+                            <label key={room.id} className="matrix-check">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                disabled={saving}
+                                onChange={(e) =>
+                                  toggleRoomMembership(
+                                    user.id,
+                                    room.id,
+                                    e.target.checked
+                                  )
+                                }
+                              />
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {saving && <span className="roles saving">Saving…</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+      </AnimatePresence>
+    </div>
+  );
+}

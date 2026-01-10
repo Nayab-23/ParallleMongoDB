@@ -1,0 +1,169 @@
+/* ============================================
+   PARALLEL OS — FUTURISTIC SHARPENED THEME
+============================================ */
+
+/* LIGHT THEME */
+:root {
+  --bg: #f6f6f7;
+  --bg-secondary: #ffffff;
+  --text: #0c0c0f;
+  --text-secondary: #5a5a5e;
+  --border: #e3e3e6;
+  --accent: #0066ff;
+  --accent-glow: rgba(0, 102, 255, 0.45);
+
+  --glass-bg: rgba(255,255,255,0.6);
+  --glass-border: rgba(0,0,0,0.06);
+
+  --code-bg: #f1f1f4;
+
+  --glow-blue: 0 0 40px rgba(0, 125, 255, 0.35);
+}
+
+/* DARK THEME */
+[data-theme="dark"] {
+  --bg: #0d0f14;
+  --bg-secondary: #151820;
+  --text: #f6f6f6;
+  --text-secondary: #bfc4cc;
+  --border: #262a33;
+  --accent: #00eaff;
+  --accent-glow: rgba(0, 234, 255, 0.4);
+
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.14);
+
+  --code-bg: #1e222c;
+
+  --glow-blue: 0 0 50px rgba(0, 234, 255, 0.45);
+}
+
+/* GLOBALS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  overflow-x: hidden;
+}
+
+/* ============================
+   GLASS PANELS + CARDS
+============================ */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 0 24px rgba(0,0,0,0.04);
+}
+
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  transition: 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--glow-blue);
+}
+
+/* ============================
+   FADE-IN
+============================ */
+.fade {
+  animation: fadeIn 0.45s ease-out;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* =====================================================
+   ANIMATED FUTURISTIC NEURAL CIRCLE RINGS (STRONG)
+===================================================== */
+.neural-ring {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  pointer-events: none;
+
+  background: radial-gradient(
+    circle,
+    rgba(0, 140, 255, 0.55) 0%,
+    rgba(0, 140, 255, 0.25) 40%,
+    transparent 70%
+  );
+
+  transform: translate(-50%, -50%);
+  filter: blur(32px);
+  z-index: -1;
+
+  animation: spinRing 12s linear infinite,
+             pulseRing 5s ease-in-out infinite;
+  opacity: 0.65;
+}
+
+/* secondary ring */
+.neural-ring.ring-2 {
+  width: 900px;
+  height: 900px;
+  opacity: 0.32;
+  animation-duration: 20s;
+  animation-direction: reverse;
+}
+
+/* third halo ring */
+.neural-ring.ring-3 {
+  width: 1250px;
+  height: 1250px;
+  opacity: 0.20;
+  animation-duration: 32s;
+}
+
+/* rotation */
+@keyframes spinRing {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* breathing */
+@keyframes pulseRing {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
+  50%  { transform: translate(-50%, -50%) scale(1.08); opacity: 0.75; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.45; }
+}
+
+/* ============================
+   ROOT + LOGO
+============================ */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  transition: 0.3s ease;
+  will-change: filter, transform;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2.2em var(--accent-glow));
+  transform: scale(1.04);
+}

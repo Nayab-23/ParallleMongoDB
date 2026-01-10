@@ -1,0 +1,135 @@
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.onboarding-card {
+  background: #ffffff;
+  color: #0f172a;
+  width: 100%;
+  max-width: 620px;
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.dot-active {
+  background: #3b82f6;
+  width: 26px;
+}
+
+.step-content {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.step-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.step-content h2 {
+  margin: 0 0 10px 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.step-content p {
+  margin: 0;
+  color: #4b5563;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.connect-btn {
+  margin-top: 14px;
+  padding: 12px 20px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.connect-btn:hover {
+  background: #1d4ed8;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
+.status-badge.success {
+  background: #ecfdf3;
+  color: #15803d;
+}
+
+.step-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.skip-btn {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.next-btn {
+  border: none;
+  background: #111827;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.next-btn:hover {
+  background: #0f172a;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 640px) {
+  .onboarding-card {
+    padding: 24px 20px;
+  }
+
+  .step-content h2 {
+    font-size: 20px;
+  }
+}

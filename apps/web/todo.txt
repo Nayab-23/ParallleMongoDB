@@ -1,0 +1,25 @@
+To-do list:
+
+
+
+
+Make integrations:
+
+NOW
+1. Gmail (readonly)
+2. Google calendar
+3. Slack (readonly)
+4. Github (readonly)
+
+Later
+5. VSCode
+6. General google drive
+7. Notion
+
+Later Later
+8. Microsoft teams
+9. Salesforce
+10. Custom SSO + SCIM
+11. Deep slack bi-directional
+
+

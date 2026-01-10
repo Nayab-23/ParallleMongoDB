@@ -1,0 +1,243 @@
+.activity-section {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.activity-section .summary-panel {
+  flex-shrink: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  position: relative;
+  top: 0;
+  height: auto;
+}
+
+.activity-history {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.activity-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.activity-history-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.time-range-select {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.activity-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-right: 8px;
+}
+
+/* Better scrollbar styling */
+.activity-timeline::-webkit-scrollbar {
+  width: 6px;
+}
+
+.activity-timeline::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.activity-timeline::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 3px solid #e5e7eb;
+  transition: all 0.2s;
+  align-items: flex-start;
+}
+
+.activity-item.status-change {
+  border-left-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.activity-item:hover {
+  background: #f3f4f6;
+}
+
+.activity-time {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  min-width: 60px;
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+  overflow: visible;
+}
+
+.activity-summary {
+  /* Force block display */
+  display: block !important;
+
+  /* Force normal text flow */
+  white-space: normal !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+
+  /* Prevent any vertical layouts */
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  /* Prevent flexbox issues */
+  flex-direction: row !important;
+
+  /* Standard styling */
+  font-size: 14px;
+  color: #111827;
+  line-height: 1.5;
+  max-width: 100%;
+  width: 100%;
+
+  /* Ensure proper text rendering */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ensure no nested elements cause issues */
+.activity-summary * {
+  display: inline !important;
+  white-space: normal !important;
+}
+
+.status-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  background: #3b82f6;
+  color: white;
+  font-size: 11px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.activity-debug {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+  font-family: monospace;
+}
+
+.no-activities {
+  text-align: center;
+  padding: 32px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.activity-history-loading {
+  padding: 32px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.activity-history-error {
+  padding: 32px;
+  text-align: center;
+  color: #ef4444;
+}
+
+.activity-history-error p {
+  margin: 0 0 12px 0;
+}
+
+.retry-info {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 8px 0;
+}
+
+.retry-btn {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #2563eb;
+}
+
+.retry-btn:active {
+  transform: scale(0.98);
+}
+
+[data-theme="dark"] .activity-history-header {
+  border-bottom-color: #374151;
+}
+
+[data-theme="dark"] .activity-history-header h3 {
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .time-range-select {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f9fafb;
+}
+
+[data-theme="dark"] .activity-item {
+  background: #1f2937;
+  border-left-color: #374151;
+}
+
+[data-theme="dark"] .activity-item.status-change {
+  background: #1e3a8a;
+  border-left-color: #3b82f6;
+}
+
+[data-theme="dark"] .activity-item:hover {
+  background: #374151;
+}
+
+[data-theme="dark"] .activity-summary {
+  color: #f9fafb;
+  /* Ensure no override of display/white-space */
+  display: block !important;
+  white-space: normal !important;
+}

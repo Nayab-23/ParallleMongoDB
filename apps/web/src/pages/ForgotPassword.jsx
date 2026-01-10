@@ -1,0 +1,25 @@
+import { motion } from "framer-motion";
+import "./Auth.css";
+
+export default function ForgotPassword({ goLogin }) {
+  return (
+    <div className="auth-container">
+      <motion.div
+        className="auth-card glass"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <h2 className="auth-title">Reset Password</h2>
+        <p className="auth-subtitle">We'll send reset instructions</p>
+
+        <input className="auth-input" placeholder="Email" type="email" />
+
+        <button className="auth-button">Send Reset Link</button>
+
+        <p className="auth-footer">
+          Remembered? <span onClick={goLogin}>Go back</span>
+        </p>
+      </motion.div>
+    </div>
+  );
+}

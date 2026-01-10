@@ -1,0 +1,92 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import LandingPage from "./pages/LandingPage";
+import AppLayout from "./layouts/AppLayout";
+import { ThemeProvider } from "./context/ThemeContext";
+import { TaskProvider } from "./context/TaskContext";
+import { RoomProvider } from "./context/RoomContext"; // NEW IMPORT
+import JoinWorkspace from "./pages/JoinWorkspace";
+import AdminPanel from "./pages/AdminPanel";
+import SettingsPage from "./pages/SettingsPage";
+import DailyBrief from "./pages/DailyBrief";
+
+function DashboardApp() {
+  return (
+    <ThemeProvider>
+      <RoomProvider>
+        <TaskProvider>
+          <AppLayout />
+        </TaskProvider>
+      </RoomProvider>
+    </ThemeProvider>
+  );
+}
+
+function JoinWorkspaceApp() {
+  return (
+    <ThemeProvider>
+      <TaskProvider>
+        <JoinWorkspace />
+      </TaskProvider>
+    </ThemeProvider>
+  );
+}
+
+function AdminApp() {
+  return (
+    <ThemeProvider>
+      <TaskProvider>
+        <AdminPanel />
+      </TaskProvider>
+    </ThemeProvider>
+  );
+}
+
+function SettingsApp() {
+  return (
+    <ThemeProvider>
+      <TaskProvider>
+        <SettingsPage />
+      </TaskProvider>
+    </ThemeProvider>
+  );
+}
+
+function DailyBriefApp() {
+  return (
+    <ThemeProvider>
+      <TaskProvider>
+        <DailyBrief />
+      </TaskProvider>
+    </ThemeProvider>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+
+        {/* Handle /index.html too */}
+        <Route path="/index.html" element={<LandingPage />} />
+
+        {/* Join workspace flow */}
+        <Route path="/join-workspace" element={<JoinWorkspaceApp />} />
+
+        {/* Admin org management */}
+        <Route path="/admin" element={<AdminApp />} />
+
+        {/* Settings / Integrations */}
+        <Route path="/settings" element={<SettingsApp />} />
+
+        {/* Daily Brief */}
+        <Route path="/brief" element={<DailyBriefApp />} />
+
+        {/* Entire app under /app */}
+        <Route path="/app/*" element={<DashboardApp />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
