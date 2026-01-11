@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import "./NewDemoChat.css";
 import UserPicker from "./UserPicker";
 import VscodePage from "./VscodePage";
+import Organization from "./Organization";
 import {
   createChat,
   dispatchChat,
@@ -216,12 +217,6 @@ export default function NewDemoChat() {
           >
             VS Code
           </button>
-          <button
-            className={activeTab === "settings" ? "active" : ""}
-            onClick={() => setActiveTab("settings")}
-          >
-            Settings
-          </button>
         </nav>
 
         {/* Chats Section */}
@@ -270,8 +265,10 @@ export default function NewDemoChat() {
           <div style={{ padding: "24px", overflow: "auto", height: "100%" }}>
             <VscodePage user={{ name: demoUser }} />
           </div>
-        ) : activeTab === "timeline" || activeTab === "manager" || activeTab === "settings" ? (
-          // Show chat interface for timeline, manager, and settings tabs (for now)
+        ) : activeTab === "manager" ? (
+          <Organization />
+        ) : activeTab === "timeline" ? (
+          // Show chat interface for timeline tab
           <>
             {/* Chat Header */}
             <div className="chat-header">
