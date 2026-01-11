@@ -1,0 +1,93 @@
+.user-picker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-picker-card {
+  background: white;
+  border-radius: 16px;
+  padding: 48px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 500px;
+  width: 90%;
+}
+
+.user-picker-card h1 {
+  margin: 0 0 12px 0;
+  font-size: 28px;
+  color: #1a202c;
+}
+
+.subtitle {
+  color: #718096;
+  margin: 0 0 40px 0;
+  font-size: 16px;
+}
+
+.user-buttons {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+}
+
+.user-btn {
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 12px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+  max-width: 180px;
+}
+
+.user-btn:hover:not(:disabled) {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.user-btn.alice:hover:not(:disabled) {
+  border-color: #667eea;
+  background: #f7fafc;
+}
+
+.user-btn.bob:hover:not(:disabled) {
+  border-color: #48bb78;
+  background: #f7fafc;
+}
+
+.user-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 36px;
+  font-weight: bold;
+  color: white;
+}
+
+.alice .user-avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bob .user-avatar {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.user-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2d3748;
+}

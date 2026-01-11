@@ -3,9 +3,11 @@ import { loggedFetch } from "../lib/apiLogger";
 
 async function request(path, options = {}) {
   const url = `${API_BASE_URL}${path}`;
+  const demoUser = localStorage.getItem("demo_user") || "alice";
   const res = await loggedFetch(url, {
     headers: {
       "Content-Type": "application/json",
+      "X-Demo-User": demoUser,
       ...(options.headers || {}),
     },
     ...options,
@@ -61,4 +63,15 @@ export function dispatchChat(chatId, content) {
 
 export function getTaskStatus(taskId) {
   return request(`/api/v1/extension/tasks/${taskId}`);
+}
+
+export function sendSiteMessage(chatId, message, workspaceId = "1") {
+  return request("/api/v1/vscode/chat", {
+    method: "POST",
+    body: JSON.stringify({
+      workspace_id: workspaceId,
+      chat_id: chatId,
+      message,
+    }),
+  });
 }

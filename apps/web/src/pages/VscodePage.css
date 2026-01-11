@@ -39,9 +39,9 @@
 }
 
 .vscode-pill.success {
-  color: #0f8a2c;
-  border-color: #0f8a2c;
-  background: #e7f7ec;
+  color: #1e40af;
+  border-color: #3b82f6;
+  background: #dbeafe;
 }
 
 .vscode-pill.neutral,
@@ -257,9 +257,9 @@
 }
 
 .vscode-success-banner {
-  background: #e7f7ec;
-  color: #0f8a2c;
-  border: 1px solid #b4e4c1;
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
   padding: 10px 12px;
   border-radius: 10px;
   margin-bottom: 8px;
@@ -326,8 +326,8 @@
 .vscode-security-note {
   margin-top: 14px;
   padding: 12px 14px;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 10px;
   font-size: 13px;
   color: var(--text);
@@ -335,7 +335,7 @@
 }
 
 .vscode-security-note strong {
-  color: #059669;
+  color: #2563eb;
 }
 
 /* How It Works Section */
@@ -367,7 +367,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--accent);
+  background: #3b82f6;
   color: white;
   display: flex;
   align-items: center;
@@ -387,9 +387,9 @@
 /* Dark mode adjustments */
 @media (prefers-color-scheme: dark) {
   .vscode-pill.success {
-    color: #34d399;
-    border-color: #059669;
-    background: rgba(16, 185, 129, 0.15);
+    color: #60a5fa;
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.15);
   }
 
   .vscode-inline-error {
@@ -399,12 +399,21 @@
   }
 
   .vscode-success-banner {
-    background: rgba(16, 185, 129, 0.1);
-    color: #34d399;
-    border-color: rgba(16, 185, 129, 0.3);
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.3);
   }
 
   .vscode-flow-steps code {
     background: rgba(255, 255, 255, 0.08);
+  }
+
+  .vscode-security-note {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+  }
+
+  .vscode-security-note strong {
+    color: #60a5fa;
   }
 }

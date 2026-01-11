@@ -395,7 +395,7 @@ export default function VscodePage({ user }) {
     <div className="vscode-page">
       <div className="vscode-header">
         <div className="vscode-title">
-          <div className="eyebrow">Parallel IDE</div>
+          <div className="eyebrow">PARALLEL IDE</div>
           <h1>VS Code Extension</h1>
           <p className="vscode-subtitle">
             Run Parallel Agent inside your editor with workspace context.

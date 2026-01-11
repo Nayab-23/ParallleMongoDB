@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./DemoChat.css";
+import UserPicker from "./UserPicker";
 import {
   createChat,
   dispatchChat,
@@ -33,6 +34,7 @@ function normalizeMessage(message) {
 }
 
 export default function DemoChat() {
+  const [demoUser, setDemoUser] = useState(() => localStorage.getItem("demo_user"));
   const [user, setUser] = useState(null);
   const [userError, setUserError] = useState("");
 
@@ -219,6 +221,15 @@ export default function DemoChat() {
     loadMessages();
   }, [loadMessages]);
 
+  const handleSwitchUser = () => {
+    localStorage.removeItem("demo_user");
+    setDemoUser(null);
+  };
+
+  if (!demoUser) {
+    return <UserPicker onUserSelected={setDemoUser} />;
+  }
+
   return (
     <div className="demo-shell">
       <aside className="demo-sidebar">
@@ -276,8 +287,11 @@ export default function DemoChat() {
             </div>
           </div>
           <div className="demo-user">
-            {user?.name || "Demo User"}
-            <span>Workspace {user?.workspace_id || "1"}</span>
+            <span className="demo-user-badge">{demoUser?.toUpperCase()}</span>
+            <span className="demo-user-name">{user?.name || "Demo User"}</span>
+            <button className="switch-user-btn" onClick={handleSwitchUser}>
+              Switch User
+            </button>
           </div>
         </header>
 

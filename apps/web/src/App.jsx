@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import DemoChat from "./pages/DemoChat";
+import NewDemoChat from "./pages/NewDemoChat";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 export default function App() {
@@ -7,7 +7,7 @@ export default function App() {
     <ErrorBoundary message="App encountered an error. Please refresh.">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<DemoChat />} />
+          <Route path="/" element={<NewDemoChat />} />
           <Route path="/index.html" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

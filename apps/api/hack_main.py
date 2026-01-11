@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
+import certifi
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from openai import OpenAI
@@ -23,7 +24,7 @@ from logutil import log_event, log_error, create_error_response, get_client_ip
 
 # Load .env from the same directory as this file (if it exists)
 env_path = Path(__file__).with_name(".env")
-if env_path.exists():
+if (env_path.exists()):
     try:
         load_dotenv(dotenv_path=env_path)
     except Exception:
@@ -94,9 +95,12 @@ def _mongo_config_snapshot() -> Dict[str, Any]:
         host = rest.split("@")[-1].split("/")[0]
         if not db_name and "/" in rest:
             db_name = rest.split("/", 1)[1].split("?", 1)[0]
+    # If still no DB name, use the default that _get_demo_db() will use
+    if not db_name:
+        db_name = "parallel_demo"
     return {
         "mongodb_uri_host": host or "(missing)",
-        "mongodb_db": db_name or "(not set)",
+        "mongodb_db": db_name,
         "mongodb_using_srv": using_srv,
     }
 
@@ -108,7 +112,8 @@ def _get_mongo_client() -> MongoClient:
             if _mongo_client is None:
                 try:
                     log_event("MONGO_CONNECT", method="connect", uri_host=CONFIG.mongodb_uri.split("@")[-1].split("/")[0] if "@" in CONFIG.mongodb_uri else "localhost")
-                    _mongo_client = MongoClient(CONFIG.mongodb_uri, serverSelectionTimeoutMS=5000)
+                    # Use certifi CA bundle to avoid macOS Python cert verification issues
+                    _mongo_client = MongoClient(CONFIG.mongodb_uri, serverSelectionTimeoutMS=5000, tlsCAFile=certifi.where())
                     # Test connection
                     _mongo_client.admin.command("ping")
                     log_event("MONGO_CONNECT_SUCCESS", method="ping")
@@ -416,6 +421,20 @@ class DemoAskResponse(BaseModel):
 # REQUEST LOGGING MIDDLEWARE
 # ============================================
 
+def get_demo_user(request: Request) -> Dict[str, str]:
+    """Resolve demo user from X-Demo-User header.
+    Returns dict with keys: key ('alice'|'bob'), user_id, name, workspace_id
+    Default is alice.
+    """
+    header = (request.headers.get("X-Demo-User") or "alice").strip().lower()
+    if header not in ("alice", "bob"):
+        header = "alice"
+    if header == "alice":
+        return {"key": "alice", "user_id": "demo-alice", "name": "Alice", "workspace_id": "1"}
+    return {"key": "bob", "user_id": "demo-bob", "name": "Bob", "workspace_id": "1"}
+
+
+# Update RequestLoggerMiddleware to include demo info in logs
 class RequestLoggerMiddleware(BaseHTTPMiddleware):
     """Logs all requests with request_id, timing, and error handling"""
 
@@ -429,6 +448,15 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
         method = request.method
         path = request.url.path
 
+        # Resolve demo user (if any)
+        try:
+            demo = get_demo_user(request)
+            demo_key = demo.get("key")
+            demo_user_id = demo.get("user_id")
+        except Exception:
+            demo_key = "alice"
+            demo_user_id = "demo-alice"
+
         # Log request start
         start_time = time.time()
         log_event(
@@ -437,6 +465,8 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
             method=method,
             path=path,
             client_ip=client_ip,
+            demo_user=demo_key,
+            demo_user_id=demo_user_id,
         )
 
         try:
@@ -453,6 +483,8 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
                 status=response.status_code,
                 duration_ms=duration_ms,
                 client_ip=client_ip,
+                demo_user=demo_key,
+                demo_user_id=demo_user_id,
             )
 
             # Add request ID to response headers
@@ -469,6 +501,8 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
                 path=path,
                 duration_ms=duration_ms,
                 client_ip=client_ip,
+                demo_user=demo_key,
+                demo_user_id=demo_user_id,
             )
             return create_error_response(
                 status_code=503,
@@ -488,6 +522,8 @@ class RequestLoggerMiddleware(BaseHTTPMiddleware):
                 path=path,
                 duration_ms=duration_ms,
                 client_ip=client_ip,
+                demo_user=demo_key,
+                demo_user_id=demo_user_id,
             )
 
             # Return standardized error response
@@ -504,6 +540,85 @@ app = FastAPI()
 # Register request logging middleware
 app.add_middleware(RequestLoggerMiddleware)
 
+# Application state for Mongo readiness & debug info
+app.state.mongo_ok = False
+app.state.mongo_error = None
+app.state.mongo_info = _mongo_config_snapshot()
+
+
+def _detect_tls_enabled(uri: str) -> bool:
+    if not uri:
+        return False
+    lowered = uri.lower()
+    return uri.startswith("mongodb+srv://") or "tls=true" in lowered or "ssl=true" in lowered
+
+
+@app.on_event("startup")
+async def check_mongo_on_startup():
+    """Try to ping MongoDB at startup and record status in app.state. Do not prevent server from starting.
+    Logs redacted host and db for operator visibility and logs full exception traceback when available."""
+    try:
+        # Attempt to create a short-lived client using certifi bundle to better handle macOS cert issues
+        tmp_client = MongoClient(CONFIG.mongodb_uri, serverSelectionTimeoutMS=5000, tlsCAFile=certifi.where())
+        try:
+            tmp_client.admin.command("ping")
+            app.state.mongo_ok = True
+            app.state.mongo_error = None
+        except Exception as exc:
+            # Record error and keep server running
+            app.state.mongo_ok = False
+            app.state.mongo_error = str(exc)
+            log_error("MONGO_CONNECT_STARTUP", exc, method="ping")
+    except Exception as exc:
+        app.state.mongo_ok = False
+        app.state.mongo_error = str(exc)
+        log_error("MONGO_CONNECT_STARTUP", exc, method="client_create")
+
+    # Store and log debug info (redacted)
+    uri = CONFIG.mongodb_uri or ""
+    using_srv = uri.startswith("mongodb+srv://")
+    host = ""
+    db_name = CONFIG.mongodb_db or ""
+    if uri:
+        parts = uri.split("://", 1)
+        rest = parts[1] if len(parts) > 1 else parts[0]
+        host = rest.split("@")[-1].split("/")[0]
+        if not db_name and "/" in rest:
+            db_name = rest.split("/", 1)[1].split("?", 1)[0]
+    app.state.mongo_info = {
+        "host": host or "(missing)",
+        "db": db_name or "(not set)",
+        "using_srv": bool(using_srv),
+        "tls_enabled": _detect_tls_enabled(uri),
+    }
+
+    # Log redacted host and db (no credentials)
+    log_event("MONGO_STARTUP_INFO", host=app.state.mongo_info.get("host"), db=app.state.mongo_info.get("db"), ok=app.state.mongo_ok)
+    if not app.state.mongo_ok:
+        log_event("MONGO_STARTUP_HINTS", hints=["Atlas: Network Access -> add IP or 0.0.0.0/0 (dev)", "macOS: install Python certs or set SSL_CERT_FILE=$(python -c \"import certifi; print(certifi.where())\")", "Atlas: ensure cluster is running"]) 
+
+
+# Global exception handler for pymongo errors to return 503 with actionable hints
+@app.exception_handler(PyMongoError)
+async def handle_pymongo_error(request: Request, exc: PyMongoError):
+    # Log full traceback
+    log_error("PYMONGO_EXCEPTION", exc, path=str(request.url), method=request.method)
+
+    hints = [
+        "Atlas: Network Access -> add your IP address or use 0.0.0.0/0 for dev",
+        "Atlas: Clusters -> ensure the cluster is Running (not paused)",
+        "macOS Python: run 'Install Certificates.command' (in /Applications/Python 3.x/) or set SSL_CERT_FILE to certifi.where()",
+        "Test with: mongosh \"$MONGODB_URI\"",
+    ]
+
+    payload = {
+        "ok": False,
+        "error_code": "MONGODB_UNAVAILABLE",
+        "message": f"MongoDB is unreachable: {type(exc).__name__}: {str(exc)}",
+        "hints": hints,
+    }
+    return JSONResponse(status_code=503, content=payload)
+
 
 @app.get("/api/health")
 def health():
@@ -512,21 +627,33 @@ def health():
 
 @app.get("/api/ready")
 def ready():
+    # Do a LIVE ping on each call to reflect current connectivity
     try:
-        _get_mongo_client().admin.command("ping")
-    except Exception:
+        client = _get_mongo_client()
+        client.admin.command("ping", serverSelectionTimeoutMS=2000)
+        return {"ok": True, **_mongo_config_snapshot()}
+    except Exception as exc:
+        details = _mongo_config_snapshot()
+        details["error"] = str(exc)
         return create_error_response(
             status_code=503,
             error_code="MONGODB_UNAVAILABLE",
-            message="MongoDB is unavailable. Check MONGODB_URI and Atlas Network Access.",
-            details=_mongo_config_snapshot(),
+            message=("MongoDB is unavailable. Check MONGODB_URI and Atlas Network Access. "
+                     "Hints: allowlist IP, ensure cluster running, and on macOS install Python certs."),
+            details=details,
         )
-    return {"ok": True, **_mongo_config_snapshot()}
 
 
 @app.get("/api/debug/mongo")
 def debug_mongo():
-    return _mongo_config_snapshot()
+    info = getattr(app.state, "mongo_info", None) or _mongo_config_snapshot()
+    # Return only host, db, using_srv, tls_enabled (no credentials)
+    return {
+        "host": info.get("host") if isinstance(info, dict) else info.get("mongodb_uri_host"),
+        "db": info.get("db") if isinstance(info, dict) else info.get("mongodb_db"),
+        "using_srv": bool(info.get("using_srv") if isinstance(info, dict) else info.get("mongodb_using_srv")),
+        "tls_enabled": bool(info.get("tls_enabled", False)),
+    }
 
 
 @app.get("/api/llm_health")

@@ -121,16 +121,41 @@
 
 .demo-user {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
+  gap: 12px;
   font-size: 12px;
   color: var(--text-secondary);
-  gap: 4px;
 }
 
-.demo-user span {
+.demo-user-badge {
+  background: var(--accent);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.demo-user-name {
   font-weight: 600;
   color: var(--text);
+}
+
+.switch-user-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+}
+
+.switch-user-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .demo-messages {
