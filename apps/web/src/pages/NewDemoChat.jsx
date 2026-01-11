@@ -3,6 +3,7 @@ import "./NewDemoChat.css";
 import UserPicker from "./UserPicker";
 import VscodePage from "./VscodePage";
 import Organization from "./Organization";
+import Timeline from "./Timeline";
 import {
   createChat,
   dispatchChat,
@@ -23,6 +24,7 @@ export default function NewDemoChat() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [activeTab, setActiveTab] = useState("timeline");
+  const [timelineView, setTimelineView] = useState("overview"); // overview | chat
   const [mode, setMode] = useState("site"); // site | agent | patch
   const [theme, setTheme] = useState("dark");
   const [chatStyle, setChatStyle] = useState("classic"); // classic | glass | minimal
@@ -234,7 +236,12 @@ export default function NewDemoChat() {
                 className={`chat-item ${
                   (chat.id || chat.chat_id) === selectedChatId ? "active" : ""
                 }`}
-                onClick={() => setSelectedChatId(chat.id || chat.chat_id)}
+                onClick={() => {
+                  setSelectedChatId(chat.id || chat.chat_id);
+                  if (activeTab === "timeline") {
+                    setTimelineView("chat");
+                  }
+                }}
               >
                 <div className="chat-name">{chat.name}</div>
                 <div className="chat-time">
@@ -268,98 +275,117 @@ export default function NewDemoChat() {
         ) : activeTab === "manager" ? (
           <Organization />
         ) : activeTab === "timeline" ? (
-          // Show chat interface for timeline tab
-          <>
-            {/* Chat Header */}
-            <div className="chat-header">
-              <div className="style-selector">
+          timelineView === "overview" ? (
+            <Timeline />
+          ) : (
+            // Show chat interface for timeline tab
+            <>
+              {/* Chat Header */}
+              <div className="chat-header">
                 <button
-                  className={chatStyle === "classic" ? "active" : ""}
-                  onClick={() => setChatStyle("classic")}
+                  className="back-btn"
+                  onClick={() => setTimelineView("overview")}
+                  style={{
+                    padding: "8px 16px",
+                    background: "#21262d",
+                    border: "1px solid #30363d",
+                    borderRadius: "6px",
+                    color: "#e6edf3",
+                    cursor: "pointer",
+                    marginRight: "16px",
+                  }}
                 >
-                  Classic
+                  ← Back to Timeline
                 </button>
-                <button
-                  className={chatStyle === "glass" ? "active" : ""}
-                  onClick={() => setChatStyle("glass")}
-                >
-                  Glass
-                </button>
-                <button
-                  className={chatStyle === "minimal" ? "active" : ""}
-                  onClick={() => setChatStyle("minimal")}
-                >
-                  Minimal
-                </button>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div className={`messages-container style-${chatStyle}`}>
-              {messages.map((msg) => (
-                <div
-                  key={msg.id || msg.message_id}
-                  className={`message ${msg.role}`}
-                >
-                  <div className="message-bubble">
-                    {msg.content}
-                    {msg.task_id && (
-                      <div className="task-status">
-                        Status: {taskStatuses[msg.task_id] || "pending"}
-                      </div>
-                    )}
-                  </div>
+                <div className="style-selector">
+                  <button
+                    className={chatStyle === "classic" ? "active" : ""}
+                    onClick={() => setChatStyle("classic")}
+                  >
+                    Classic
+                  </button>
+                  <button
+                    className={chatStyle === "glass" ? "active" : ""}
+                    onClick={() => setChatStyle("glass")}
+                  >
+                    Glass
+                  </button>
+                  <button
+                    className={chatStyle === "minimal" ? "active" : ""}
+                    onClick={() => setChatStyle("minimal")}
+                  >
+                    Minimal
+                  </button>
                 </div>
-              ))}
-            </div>
-
-            {/* Input Area */}
-            <div className="input-area">
-              <div className="mode-tabs">
-                <button
-                  className={mode === "site" ? "active" : ""}
-                  onClick={() => setMode("site")}
-                >
-                  Site
-                </button>
-                <button
-                  className={mode === "agent" ? "active" : ""}
-                  onClick={() => setMode("agent")}
-                >
-                  Agent (VS Code)
-                </button>
-                <button
-                  className={mode === "patch" ? "active" : ""}
-                  onClick={() => setMode("patch")}
-                >
-                  Patch
-                </button>
               </div>
 
-              <div className="input-controls">
-                <label>
-                  <input type="checkbox" /> Include context preview
-                </label>
-                <label>
-                  <input type="checkbox" /> Diagnostics mode
-                </label>
+              {/* Messages */}
+              <div className={`messages-container style-${chatStyle}`}>
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id || msg.message_id}
+                    className={`message ${msg.role}`}
+                  >
+                    <div className="message-bubble">
+                      {msg.content}
+                      {msg.task_id && (
+                        <div className="task-status">
+                          Status: {taskStatuses[msg.task_id] || "pending"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="input-row">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleSend()}
-                  placeholder={`Send message in ${mode} mode...`}
-                  disabled={sending}
-                />
-                <button onClick={handleSend} disabled={sending || !input.trim()}>
-                  {sending ? "Sending..." : "Send"}
-                </button>
+              {/* Input Area */}
+              <div className="input-area">
+                <div className="mode-tabs">
+                  <button
+                    className={mode === "site" ? "active" : ""}
+                    onClick={() => setMode("site")}
+                  >
+                    Site
+                  </button>
+                  <button
+                    className={mode === "agent" ? "active" : ""}
+                    onClick={() => setMode("agent")}
+                  >
+                    Agent (VS Code)
+                  </button>
+                  <button
+                    className={mode === "patch" ? "active" : ""}
+                    onClick={() => setMode("patch")}
+                  >
+                    Patch
+                  </button>
+                </div>
+
+                <div className="input-controls">
+                  <label>
+                    <input type="checkbox" /> Include context preview
+                  </label>
+                  <label>
+                    <input type="checkbox" /> Diagnostics mode
+                  </label>
+                </div>
+
+                <div className="input-row">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                    placeholder={`Send message in ${mode} mode...`}
+                    disabled={sending}
+                  />
+                  <button onClick={handleSend} disabled={sending || !input.trim()}>
+                    {sending ? "Sending..." : "Send"}
+                  </button>
+                </div>
               </div>
-            </div>
-          </>
+            </>
+          )
         ) : null}
       </main>
     </div>
